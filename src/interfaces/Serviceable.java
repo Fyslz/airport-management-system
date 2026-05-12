@@ -1,5 +1,6 @@
 package interfaces;
 
-public class Serviceable {
+public interface Serviceable {
+    void requestService(String serviceType);
     
 }
