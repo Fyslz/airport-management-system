@@ -11,9 +11,16 @@ public class BaggageHandler extends ServiceUnit {
 
     @Override
     public void provideService(Flight f) {
+        moveToGate(f.getAssignedGate());
+        setAvailable(false);
         System.out.println("BaggageHandler " + getUnitId() +
             " handling baggage for flight " +
             f.getFlightId());
-        setAvailable(false);
+        try {
+            Thread.sleep((long)(getServiceDuration() * 1000));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        setAvailable(true);
     }
 }
