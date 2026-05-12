@@ -28,11 +28,11 @@ public abstract class Flight implements Serviceable{
     }
 
     public void land(){
-        // Waiting for GUI 
+        // TODO: Pendeing for GUI implementation 
     }
 
     public void depart(){
-        // Waiting for GUI 
+        // TODO: Pendeing for GUI implementation 
     }
 
     
