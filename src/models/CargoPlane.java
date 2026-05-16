@@ -12,7 +12,8 @@ public class CargoPlane extends Flight {
     }
     @Override
     public void requestService(String serviceType){
-        // TODO: Pendeing for GUI implementation 
+        System.out.println("Cargo Plane [" + getFlightId() + "]: Requesting " + serviceType + "service.");
+        addServiceToList(serviceType);
     }
 
 

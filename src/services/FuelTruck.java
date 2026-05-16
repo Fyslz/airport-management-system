@@ -6,20 +6,13 @@ import models.ServiceUnit;
 public class FuelTruck extends ServiceUnit {
 
     public FuelTruck(int unitId) {
-        super(unitId, 20.0, 500.0);
+        super(unitId, 20.0, 500.0,"FuelTruck");
     }
 
     @Override
     public void provideService(Flight f) {
-        System.out.println("FuelTruck [" + getUnitId() + "] يقوم بتزويد الرحلة " + f.getFlightId() + " بالوقود...");
+        System.out.println(getServiceType() + "[" + getUnitId() + "] is providing service to flight [" + f.getFlightId() + "] at gate :" + f.getAssignedGate());
         setAvailable(false);
         moveToGate(f.getAssignedGate());
-        try {
-            Thread.sleep((long)(getServiceDuration() * 1000));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        setAvailable(true);
-        System.out.println("FuelTruck [" + getUnitId() + "] انتهى من تزويد الرحلة " + f.getFlightId() + " بالوقود.");
     }
 }

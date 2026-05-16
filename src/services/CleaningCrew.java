@@ -6,21 +6,13 @@ import models.ServiceUnit;
 public class CleaningCrew extends ServiceUnit {
 
     public CleaningCrew(int unitId) {
-        super(unitId, 25.0, 200.0);
+        super(unitId, 25.0, 200.0, "CleaningCrew");
     }
 
     @Override
     public void provideService(Flight f) {
-        moveToGate(f.getAssignedGate());
+        System.out.println(getServiceType() + "[" + getUnitId() + "] is providing service to flight [" + f.getFlightId() + "] at gate :" + f.getAssignedGate());
         setAvailable(false);
-        System.out.println("CleaningCrew " + getUnitId() +
-            " cleaning flight " +
-            f.getFlightId());
-        try {
-            Thread.sleep((long)(getServiceDuration() * 1000));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        setAvailable(true);
+        moveToGate(f.getAssignedGate());
     }
 }

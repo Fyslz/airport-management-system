@@ -1,6 +1,9 @@
 package main;
+
+import javafx.application.Application;
+
 public class Main {
-    public static void main(String[] args) throws Exception {
-        System.out.println("hi fysl");
+    public static void main(String[] args) {
+        Application.launch(AirportGUI.class, args);
     }
 }

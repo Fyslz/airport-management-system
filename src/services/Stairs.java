@@ -6,20 +6,13 @@ import models.ServiceUnit;
 public class Stairs extends ServiceUnit {
 
     public Stairs(int unitId) {
-        super(unitId, 10.0, 100.0);
+        super(unitId, 10.0, 100.0, "Stairs");
     }
 
     @Override
     public void provideService(Flight f) {
-        System.out.println("Stairs [" + getUnitId() + "] يتم توصيل السلم للطائرة " + f.getFlightId() + "...");
+        System.out.println(getServiceType() + "[" + getUnitId() + "] is providing service to flight [" + f.getFlightId() + "] at gate :" + f.getAssignedGate());
         setAvailable(false);
         moveToGate(f.getAssignedGate());
-        try {
-            Thread.sleep((long)(getServiceDuration() * 1000));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        setAvailable(true);
-        System.out.println("Stairs [" + getUnitId() + "] تم سحب السلم من الطائرة " + f.getFlightId() + ".");
     }
 }

@@ -11,6 +11,8 @@ public abstract class Flight implements Serviceable{
     private double waitingTime;
     private int assignedGate;
     private List<String> requiredServices;
+    private List<ServiceUnit> assignedUnits = new ArrayList<>();
+
 
     public abstract void requestService(String serviceType);
 
@@ -27,15 +29,21 @@ public abstract class Flight implements Serviceable{
     this.requiredServices = new ArrayList<>(); // avoid errors
     }
 
-    public void land(){
-        // TODO: Pendeing for GUI implementation 
+    public void land() {
+        this.flightArrivalStatus = "Landed";
+        System.out.println("Flight [" + flightId + "] has successfully landed and ready for gate assignment.");
     }
 
-    public void depart(){
-        // TODO: Pendeing for GUI implementation 
+    public void depart() {
+        this.flightArrivalStatus = "Departed";
+        this.assignedGate = -1; 
+        System.out.println("Flight [" + flightId + "] has departed from the airport.");
     }
-
     
+    public void setAssignedGate(int assignedGate){
+        this.assignedGate = assignedGate;
+    }
+
     public int getPriority(){
         return priority;
     }
@@ -64,4 +72,16 @@ public abstract class Flight implements Serviceable{
         return assignedGate;
     }
 
+
+    public void addServiceToList(String serviceType) {
+        this.requiredServices.add(serviceType);
+    }
+    
+    public List<String> getRequestedServices() {
+        return this.requiredServices;
+    }
+    
+    public List<ServiceUnit> getAssignedUnits() {
+        return this.assignedUnits;
+    }
 }
