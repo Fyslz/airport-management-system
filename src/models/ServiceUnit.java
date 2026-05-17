@@ -37,11 +37,6 @@ public abstract class ServiceUnit {
         return serviceDuration;
     }
 
-    // -------------------------------------
-    // Additional Methods (Added by Ahmed)
-    // -------------------------------------
-
-
     public void setAvailable(boolean available) {
         if (this.isAvailable != available){
             this.isAvailable = available;
@@ -61,11 +56,8 @@ public abstract class ServiceUnit {
         return availableServiceUnits;
     }
 
-
-    // -------------------------------------
-    // Additional Methods (Added by Fysl)
-    // -------------------------------------
-
-    public String getServiceType() {return serviceType;}
+    public String getServiceType() {return serviceType;
+        
+    }
 
 }

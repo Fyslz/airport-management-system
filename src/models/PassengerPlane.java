@@ -16,9 +16,6 @@ public class PassengerPlane extends Flight {
         addServiceToList(serviceType);
     }    
 
-    // -------------------------------------
-    // Additional Getters (Added by Fysl)
-    // -------------------------------------
     public int getPassengerCount() {
         return passengerCount;
     }

@@ -10,8 +10,8 @@ public abstract class Flight implements Serviceable{
     private int priority; 
     private double waitingTime;
     private int assignedGate;
-    private List<String> requiredServices;
-    private List<ServiceUnit> assignedUnits = new ArrayList<>();
+    private List<String> requiredServices; // requested units
+    private List<ServiceUnit> assignedUnits = new ArrayList<>(); // active units
 
 
     public abstract void requestService(String serviceType);
@@ -40,6 +40,10 @@ public abstract class Flight implements Serviceable{
         System.out.println("Flight [" + flightId + "] has departed from the airport.");
     }
     
+    public void addServiceToList(String serviceType) {
+        this.requiredServices.add(serviceType);
+    }
+
     public void setAssignedGate(int assignedGate){
         this.assignedGate = assignedGate;
     }
@@ -60,21 +64,12 @@ public abstract class Flight implements Serviceable{
         return flightArrivalStatus;
     }
 
-    // -------------------------------------
-    // Additional Getters (Added by Fysl)
-    // -------------------------------------
-
     public String getFlightId() {
         return flightId;
     }
 
     public int getAssignedGate() {
         return assignedGate;
-    }
-
-
-    public void addServiceToList(String serviceType) {
-        this.requiredServices.add(serviceType);
     }
     
     public List<String> getRequestedServices() {
