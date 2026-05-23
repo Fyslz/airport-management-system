@@ -186,7 +186,7 @@ public class Airport {
         int numberOfServicesToRequest = rand.nextInt(ALL_SERVICES.length) + 1; 
         
         for (int i = 0; i < numberOfServicesToRequest; i++) {
-            flight.addServiceToList(shuffledServices.get(i));
+            flight.requestService(shuffledServices.get(i));
         }
     }
 

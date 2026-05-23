@@ -1,32 +1,45 @@
 package models;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
+
 import interfaces.Serviceable;
 
 public abstract class Flight implements Serviceable{
     private String flightId;
-    private double flightArrivalTime;
-    private String flightArrivalStatus;
+    private double flightArrivalTime; // the time when the plane landed
+    private String flightArrivalStatus; // did the plane land? - did the plane depart?
     private int priority; 
-    private double waitingTime;
-    private int assignedGate;
-    private List<String> requiredServices; // requested units
+    private double flightTotalWaitingTime; // Total Waiting time the plane took in Queue and on Gate
+    private double flightInQueueWaitingTime; // Waiting time plane took in Queue only
+    private double flightOnGateWaitingTime; // Waiting time plane took on gate only
+    private int assignedGate; // which gate flight will get on
+    private List<String> requiredServices = new ArrayList<>(); // requested units
     private List<ServiceUnit> assignedUnits = new ArrayList<>(); // active units
-
 
     public abstract void requestService(String serviceType);
 
     public Flight(String flightId, double flightArrivalTime, int priority){
-    // Assigning inputs
-    this.flightId = flightId;
-    this.flightArrivalTime = flightArrivalTime;
-    this.priority = priority;
+        // Assigning inputs
+        this.flightId = flightId;
+        this.flightArrivalTime = flightArrivalTime;
+        this.priority = priority;
 
-    // Initializing default vlaues
-    this.flightArrivalStatus = "Scheduled"; // expected to be scheduled 
-    this.waitingTime = 0.0; // just got registered 
-    this.assignedGate = -1; // indicates unassigned gate
-    this.requiredServices = new ArrayList<>(); // avoid errors
+        // Initializing default vlaues
+        this.flightArrivalStatus = "Scheduled"; // expected to be scheduled 
+        this.flightTotalWaitingTime = 0.0; // just got registered 
+        this.flightInQueueWaitingTime = 0.0;
+        this.flightOnGateWaitingTime = 0.0;
+        this.assignedGate = -1; // indicates unassigned gate
+        this.requiredServices = new ArrayList<>(); // avoid errors
+
+    }
+
+
+    public void addServiceToList(String serviceType) {
+        this.requiredServices.add(serviceType);
     }
 
     public void land() {
@@ -39,44 +52,54 @@ public abstract class Flight implements Serviceable{
         this.assignedGate = -1; 
         System.out.println("Flight [" + flightId + "] has departed from the airport.");
     }
-    
-    public void addServiceToList(String serviceType) {
-        this.requiredServices.add(serviceType);
+
+
+    public void updateFlightInQueueWaitingTime(){ 
+        // Time passes while the flight is in Queue waiting to get assigned to a gate
+        this.flightInQueueWaitingTime += 1.0;
     }
+    public void updateFlightOnGateWaitingTime(){ 
+        // Time passes while the flight is on Gate waiting to get services units to be done
+        this.flightOnGateWaitingTime += 1.0;
+    }
+    public void updateFlightTotalWaitingTime(){
+        // Total Time passed to the flight waiting..
+        this.flightTotalWaitingTime = this.flightOnGateWaitingTime + this.flightInQueueWaitingTime;
+    }
+
 
     public void setAssignedGate(int assignedGate){
         this.assignedGate = assignedGate;
     }
-
-    public int getPriority(){
-        return priority;
-    }
-
-    public double getWaitingTime(){
-        return waitingTime;
-    }
-
-    public double getArrivalTime(){
-        return flightArrivalTime;
-    }
-
-    public String getFlightArrivalStatus() {
-        return flightArrivalStatus;
-    }
-
     public String getFlightId() {
         return flightId;
     }
-
+    public double getArrivalTime(){
+        return flightArrivalTime;
+    }
+    public String getFlightArrivalStatus() {
+        return flightArrivalStatus;
+    }
+    public int getPriority(){
+        return priority;
+    }
     public int getAssignedGate() {
         return assignedGate;
     }
-    
-    public List<String> getRequestedServices() {
-        return this.requiredServices;
+    public double getFlightInQueueWaitingTime() {
+        return flightInQueueWaitingTime;
     }
-    
+    public double getFlightOnGateWaitingTime() {
+        return flightOnGateWaitingTime;
+    }
+    public double getFlightTotalWaitingTime() {
+        return flightTotalWaitingTime;
+    }
     public List<ServiceUnit> getAssignedUnits() {
         return this.assignedUnits;
     }
+    public List<String> getRequestedServices() {
+        return this.requiredServices;
+    }
+
 }
