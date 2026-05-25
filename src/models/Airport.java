@@ -24,7 +24,7 @@ import services.Stairs;
 // import services.*;
 
 public class Airport {
-    private int numberOfGates;
+    private int numberOfGates; // ___ No need for this variable rn because we replace it with gate class
     private boolean[] gateOccupied; // 0 is free - 1 is busy
     private List<Flight> flights; 
     private List<ServiceUnit> serviceUnits;
@@ -32,6 +32,7 @@ public class Airport {
     private double totalWaitingTime;
     private double totalCost;
     private double currentTime;
+    private List<Gate> airportGates;
 
     private static final String[] ALL_SERVICES = {
         "Ambulance", "FuelTruck", "CleaningCrew", "BaggageHandler", 
@@ -40,7 +41,7 @@ public class Airport {
     };
 
     public Airport(int numberOfGates){
-        this.numberOfGates = numberOfGates;
+        this.numberOfGates = numberOfGates; // ___ No need for this variable rn
         this.gateOccupied = new boolean[numberOfGates];
         this.flights = new ArrayList<>();
         this.serviceUnits = new ArrayList<>();
@@ -48,6 +49,8 @@ public class Airport {
         this.totalWaitingTime = 0.0;
         this.totalCost = 0.0;
         this.currentTime = 0.0;
+
+        this.airportGates = new ArrayList<>();
     }
 
     public void generateFlights(){
@@ -191,20 +194,21 @@ public class Airport {
     }
 
     public void assignFlightToGate(Flight flight){
-        for (int i = 0; i < numberOfGates; i++){ 
-            if (!gateOccupied[i]){
-                gateOccupied[i] = true;
-                flight.setAssignedGate(i);
-                System.out.println("Flight: " + flight.getFlightId() + " to the gate: " + i);
+        for (int i = 0; i < this.airportGates.size(); i++){
+            if (!this.airportGates.get(i).getIsAvailable()){
+                this.airportGates.get(i).setAvailable(true);
+                flight.setAssignedGate(this.airportGates.get(i));
+                System.out.println("Flight: " + flight.getFlightId() + " to the gate: " + flight.getAssignedGate());
                 return;
             }
         }
         waitingQueue.add(flight);
         System.out.println("Flight: " + flight.getFlightId() + " is waiting for a free gate...");
+        // TODO: Add waiting time here
     }
     
     public void assignServiceUnit(Flight flight, String requiredServiceType){
-        if (flight.getAssignedGate() == -1){
+        if (!flight.getAssignedGate().getIsAvailable()){ // flight.getAssignedGate().getIsAvailable() will return boolean
             return;
         }
         for (int i = 0; i < flight.getAssignedUnits().size(); i++) {
@@ -228,9 +232,9 @@ public class Airport {
     }
 
 
-    public void releaseGate(int gateId){
-        gateOccupied[gateId] = false;
-        System.out.println("Gate: " + gateId + " is free now!");
+    public void releaseGate(Gate g){
+        g.setAvailable(false);
+        System.out.println("Gate: " + g.getGateId() + " is free now!");
 
         if (!waitingQueue.isEmpty()){ 
             Flight nextFlight = waitingQueue.poll(); 

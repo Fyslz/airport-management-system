@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 
 import interfaces.Serviceable;
+import models.Gate;
 
 public abstract class Flight implements Serviceable{
     private String flightId;
@@ -15,9 +16,11 @@ public abstract class Flight implements Serviceable{
     private double flightTotalWaitingTime; // Total Waiting time the plane took in Queue and on Gate
     private double flightInQueueWaitingTime; // Waiting time plane took in Queue only
     private double flightOnGateWaitingTime; // Waiting time plane took on gate only
-    private int assignedGate; // which gate flight will get on
+    private Gate assignedGate; // which gate flight will get on
     private List<String> requiredServices = new ArrayList<>(); // requested units
     private List<ServiceUnit> assignedUnits = new ArrayList<>(); // active units
+
+    // private Gate assignedGate;
 
     public abstract void requestService(String serviceType);
 
@@ -32,7 +35,7 @@ public abstract class Flight implements Serviceable{
         this.flightTotalWaitingTime = 0.0; // just got registered 
         this.flightInQueueWaitingTime = 0.0;
         this.flightOnGateWaitingTime = 0.0;
-        this.assignedGate = -1; // indicates unassigned gate
+        // this.assignedGate = -1; // indicates unassigned gate ___ delete this line
         this.requiredServices = new ArrayList<>(); // avoid errors
 
     }
@@ -43,13 +46,14 @@ public abstract class Flight implements Serviceable{
     }
 
     public void land() {
+        // TODO: add the time when plane landed
         this.flightArrivalStatus = "Landed";
         System.out.println("Flight [" + flightId + "] has successfully landed and ready for gate assignment.");
     }
 
     public void depart() {
         this.flightArrivalStatus = "Departed";
-        this.assignedGate = -1; 
+        this.assignedGate.setAvailable(false); // free the gate
         System.out.println("Flight [" + flightId + "] has departed from the airport.");
     }
 
@@ -68,8 +72,8 @@ public abstract class Flight implements Serviceable{
     }
 
 
-    public void setAssignedGate(int assignedGate){
-        this.assignedGate = assignedGate;
+    public void setAssignedGate(Gate assignedGate){
+        this.assignedGate = assignedGate; // Plane is linked to a gate
     }
     public String getFlightId() {
         return flightId;
@@ -83,9 +87,12 @@ public abstract class Flight implements Serviceable{
     public int getPriority(){
         return priority;
     }
-    public int getAssignedGate() {
-        return assignedGate;
+    public Gate getAssignedGate() {
+        return this.assignedGate;
     }
+    public int getAssignedGateId(){
+        return this.assignedGate.getGateId();
+    } 
     public double getFlightInQueueWaitingTime() {
         return flightInQueueWaitingTime;
     }
