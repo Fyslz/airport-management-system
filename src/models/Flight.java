@@ -15,12 +15,16 @@ public abstract class Flight implements Serviceable{
     private int priority; 
     private double flightTotalWaitingTime; // Total Waiting time the plane took in Queue and on Gate
     private double flightInQueueWaitingTime; // Waiting time plane took in Queue only
-    private double flightOnGateWaitingTime; // Waiting time plane took on gate only
-    private Gate assignedGate; // which gate flight will get on
-    private List<String> requiredServices = new ArrayList<>(); // requested units
-    private List<ServiceUnit> assignedUnits = new ArrayList<>(); // active units
+    private double flightOnGateWaitingTime; // Waiting time plane took on gate only // requested units
+    private Gate assignedGate; // which gate flight will get on // active units
+    private Gate visitedGate; // units histoy
 
-    // private Gate assignedGate;
+    private List<String> requiredServices = new ArrayList<>(); 
+    private List<ServiceUnit> assignedUnits = new ArrayList<>(); 
+    private List<ServiceUnit> servedUnitsHistory = new ArrayList<>(); 
+
+    private double readyToDepartTime = -1; // not ready to depart
+
 
     public abstract void requestService(String serviceType);
 
@@ -35,9 +39,11 @@ public abstract class Flight implements Serviceable{
         this.flightTotalWaitingTime = 0.0; // just got registered 
         this.flightInQueueWaitingTime = 0.0;
         this.flightOnGateWaitingTime = 0.0;
-        // this.assignedGate = -1; // indicates unassigned gate ___ delete this line
+        this.assignedGate = null; // indicates unassigned gate 
+        this.visitedGate = null; // indicates unassigned gate 
         this.requiredServices = new ArrayList<>(); // avoid errors
-
+        this.assignedUnits = new ArrayList<>(); // avoid errors
+        this.servedUnitsHistory = new ArrayList<>(); // avoid errors
     }
 
 
@@ -45,15 +51,20 @@ public abstract class Flight implements Serviceable{
         this.requiredServices.add(serviceType);
     }
 
-    public void land() {
-        // TODO: add the time when plane landed
+    public void addAssignedServiceToList(ServiceUnit serviceUnit) {
+        this.assignedUnits.add(serviceUnit);
+        this.servedUnitsHistory.add(serviceUnit);
+    }
+
+    public void land(Double landingTime) {// landing time is the time when the plane landed (the timeline)
+        this.flightArrivalTime = landingTime;
         this.flightArrivalStatus = "Landed";
         System.out.println("Flight [" + flightId + "] has successfully landed and ready for gate assignment.");
     }
 
     public void depart() {
         this.flightArrivalStatus = "Departed";
-        this.assignedGate.setAvailable(false); // free the gate
+        // this.assignedGate.setAvailable(true); // free the gate تم كنسلة هذا اللاين بسبب releaseGate()
         System.out.println("Flight [" + flightId + "] has departed from the airport.");
     }
 
@@ -72,41 +83,31 @@ public abstract class Flight implements Serviceable{
     }
 
 
-    public void setAssignedGate(Gate assignedGate){
-        this.assignedGate = assignedGate; // Plane is linked to a gate
+    public void setReadyToDepartTime(double time) { 
+        this.readyToDepartTime = time; 
     }
-    public String getFlightId() {
-        return flightId;
+    public double getReadyToDepartTime() { 
+        return this.readyToDepartTime; 
     }
-    public double getArrivalTime(){
-        return flightArrivalTime;
-    }
-    public String getFlightArrivalStatus() {
-        return flightArrivalStatus;
-    }
-    public int getPriority(){
-        return priority;
-    }
-    public Gate getAssignedGate() {
-        return this.assignedGate;
-    }
-    public int getAssignedGateId(){
-        return this.assignedGate.getGateId();
+
+    
+    public void setAssignedGate(Gate assignedGate){ // Plane is linked to a gate
+        this.assignedGate = assignedGate;
+        this.visitedGate = assignedGate;
     } 
-    public double getFlightInQueueWaitingTime() {
-        return flightInQueueWaitingTime;
+    public Gate getVisitidGate() {
+        return visitedGate;
     }
-    public double getFlightOnGateWaitingTime() {
-        return flightOnGateWaitingTime;
-    }
-    public double getFlightTotalWaitingTime() {
-        return flightTotalWaitingTime;
-    }
-    public List<ServiceUnit> getAssignedUnits() {
-        return this.assignedUnits;
-    }
-    public List<String> getRequestedServices() {
-        return this.requiredServices;
-    }
+    public String getFlightId() {return flightId;}
+    public double getArrivalTime(){return flightArrivalTime;}
+    public String getFlightArrivalStatus() {return flightArrivalStatus;}
+    public int getPriority(){return priority;}
+    public Gate getAssignedGate() {return this.assignedGate;}
+    public int getAssignedGateId(){return this.assignedGate.getGateId();} 
+    public double getFlightInQueueWaitingTime() {return flightInQueueWaitingTime;}
+    public double getFlightOnGateWaitingTime() {return flightOnGateWaitingTime;}
+    public double getFlightTotalWaitingTime() {return flightTotalWaitingTime;}
+    public List<ServiceUnit> getAssignedUnits() {return this.assignedUnits;}
+    public List<String> getRequestedServices() {return this.requiredServices;}
 
 }

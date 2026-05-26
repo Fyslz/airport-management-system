@@ -1,5 +1,8 @@
 package models;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class ServiceUnit {
     private int unitId;
     private double serviceDuration;
@@ -9,6 +12,11 @@ public abstract class ServiceUnit {
     private int currentGate;
     private String serviceType; // to calculate how many service we got in each (Airport class)
 
+    private Flight activePlaneServing;
+    private List<Flight> planesServedHistory = new ArrayList<>();
+    private Gate activeOnGate; 
+    private List<Gate> GateServedHistory = new ArrayList<>();
+    
     public ServiceUnit(int unitId, double serviceDuration, double cost, String serviceType) {
         this.unitId = unitId;
         this.serviceDuration = serviceDuration;
@@ -20,6 +28,15 @@ public abstract class ServiceUnit {
     }
 
     public abstract void provideService(Flight f);
+
+    public void assignToFlight(Flight f) {
+        this.activePlaneServing = f;
+        this.activeOnGate = f.getAssignedGate(); // taking gate from plane
+        
+        this.planesServedHistory.add(f);
+        this.GateServedHistory.add(f.getAssignedGate());
+        
+    }
 
     public void moveToGate(int gateId) {
         this.currentGate = gateId;
@@ -60,4 +77,20 @@ public abstract class ServiceUnit {
         
     }
 
+    public Gate getActiveOnGate() {
+        return activeOnGate;
+    }
+    
+    public List<Gate> getGateServedHistory() {
+        return GateServedHistory;
+    }
+
+    public Flight getActivePlaneServing() {
+        return activePlaneServing;
+    }
+
+    public List<Flight> getPlanesServedHistory() {
+        return planesServedHistory;
+    }
+    
 }

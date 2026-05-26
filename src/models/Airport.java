@@ -24,15 +24,14 @@ import services.Stairs;
 // import services.*;
 
 public class Airport {
-    private int numberOfGates; // ___ No need for this variable rn because we replace it with gate class
-    private boolean[] gateOccupied; // 0 is free - 1 is busy
     private List<Flight> flights; 
     private List<ServiceUnit> serviceUnits;
     private Queue<Flight> waitingQueue;
     private double totalWaitingTime;
+    private double averageWaitTime;
     private double totalCost;
-    private double currentTime;
-    private List<Gate> airportGates;
+    private double timeLine;
+    private List<Gate> airportGates = new ArrayList<>();
 
     private static final String[] ALL_SERVICES = {
         "Ambulance", "FuelTruck", "CleaningCrew", "BaggageHandler", 
@@ -41,145 +40,178 @@ public class Airport {
     };
 
     public Airport(int numberOfGates){
-        this.numberOfGates = numberOfGates; // ___ No need for this variable rn
-        this.gateOccupied = new boolean[numberOfGates];
         this.flights = new ArrayList<>();
         this.serviceUnits = new ArrayList<>();
         this.waitingQueue = new LinkedList<>();
+
+        for (int i = 0; i < numberOfGates; i++) { // creating gates
+            this.airportGates.add(new Gate(i));
+        }
+
         this.totalWaitingTime = 0.0;
         this.totalCost = 0.0;
-        this.currentTime = 0.0;
+        this.timeLine = 0.0;
 
-        this.airportGates = new ArrayList<>();
     }
 
     public void generateFlights(){
-        addServiceUnit(new Ambulance(101));
-         addServiceUnit(new Ambulance(102));
-        addServiceUnit(new FuelTruck(201));
-         addServiceUnit(new FuelTruck(202));
-        addServiceUnit(new CleaningCrew(301));
-         addServiceUnit(new CleaningCrew(302));
-        addServiceUnit(new BaggageHandler(401));
-         addServiceUnit(new BaggageHandler(402));
-        addServiceUnit(new CateringTruck(501));
-         addServiceUnit(new CateringTruck(502));
-        addServiceUnit(new Stairs(601));
-         addServiceUnit(new Stairs(602));
-        addServiceUnit(new PassengerBus(701));
-         addServiceUnit(new PassengerBus(702));
-        addServiceUnit(new PushbackTug(801));
-         addServiceUnit(new PushbackTug(802));
-        addServiceUnit(new FireTruck(901));
-         addServiceUnit(new FireTruck(902));
-        addServiceUnit(new MaintenanceService(1101));
-         addServiceUnit(new MaintenanceService(1102));
-        addServiceUnit(new CustomsService(1201));
-         addServiceUnit(new CustomsService(1202));
-        addServiceUnit(new SpecialAssistance(1301));
-         addServiceUnit(new SpecialAssistance(1302));
+    System.out.println("\n--- Initializing Service Units ---");
+        addServiceUnit(new Ambulance(101));         addServiceUnit(new Ambulance(102));
+        addServiceUnit(new FuelTruck(201));         addServiceUnit(new FuelTruck(202));
+        addServiceUnit(new CleaningCrew(301));      addServiceUnit(new CleaningCrew(302));
+        addServiceUnit(new BaggageHandler(401));    addServiceUnit(new BaggageHandler(402));
+        addServiceUnit(new CateringTruck(501));     addServiceUnit(new CateringTruck(502));
+        addServiceUnit(new Stairs(601));            addServiceUnit(new Stairs(602));
+        addServiceUnit(new PassengerBus(701));      addServiceUnit(new PassengerBus(702));
+        addServiceUnit(new PushbackTug(801));       addServiceUnit(new PushbackTug(802));
+        addServiceUnit(new FireTruck(901));         addServiceUnit(new FireTruck(902));
+        addServiceUnit(new MaintenanceService(1001)); addServiceUnit(new MaintenanceService(1002));
+        addServiceUnit(new CustomsService(1101));   addServiceUnit(new CustomsService(1102));
+        addServiceUnit(new SpecialAssistance(1201));  addServiceUnit(new SpecialAssistance(1202));
 
-
-
-        Flight[] p = new Flight[10];
-        p[0] = new PassengerPlane("SV111", 10.0, 1, 150);
-        p[1] = new CargoPlane("XY222", 10.5, 2, 2000.0);
-        p[2] = new PassengerPlane("EK333", 11.0, 3, 300);
-        p[3] = new CargoPlane("QR444", 11.5, 1, 1500.0);
-        p[4] = new PassengerPlane("GF555", 12.0, 2, 180);
-        p[5] = new PassengerPlane("WY666", 12.5, 3, 220);
-        p[6] = new CargoPlane("MS777", 13.0, 1, 3500.0);
-        p[7] = new PassengerPlane("TK888", 13.5, 2, 250);
-        p[8] = new PassengerPlane("BA999", 14.0, 3, 280);
-        p[9] = new CargoPlane("LH100", 14.5, 1, 4000.0);
-
-        System.out.println("\n--- Generating Random Service Requests ---");
-        for (int i = 0; i < 10; i++) {
-            assignRandomServices(p[i]);
-        }
+        System.out.println("--- Generating 10 Flights ---");
+        Flight[] incomingFlights = new Flight[10];
         
-        System.out.println("\n--- Receiving Flights ---");
+        incomingFlights[0] = new PassengerPlane("SV111", 1.0, 1, 150);
+        incomingFlights[1] = new CargoPlane("XY222", 2.0, 2, 2000.0);
+        incomingFlights[2] = new PassengerPlane("EK333", 3.0, 1, 300);
+        incomingFlights[3] = new CargoPlane("QR444", 4.0, 1, 1500.0);
+        incomingFlights[4] = new PassengerPlane("GF555", 5.0, 2, 180);
+        incomingFlights[5] = new PassengerPlane("WY666", 6.0, 3, 220);
+        incomingFlights[6] = new CargoPlane("MS777", 7.0, 1, 3500.0);
+        incomingFlights[7] = new PassengerPlane("TK888", 8.0, 2, 250);
+        incomingFlights[8] = new PassengerPlane("BA999", 9.0, 1, 280);
+        incomingFlights[9] = new CargoPlane("LH100", 10.0, 1, 4000.0);
+
+        System.out.println("--- Assigning Services & Receiving Flights ---");
         for (int i = 0; i < 10; i++) {
-            receiveFlight(p[i]);
+            assignRandomServices(incomingFlights[i]);
+            
+            receiveFlight(incomingFlights[i]);
         }
     }
 
     public void run(){
         System.out.println("=== AIRPORT SIMULATION STARTED ===");
-        generateFlights();
+        generateFlights(); // generate the flights and service unis
         
-        int totalFlights = flights.size();
+        int totalFlights = this.flights.size();
         int departedFlightsCount = 0;
 
-        System.out.println("\n--- Processing Airport Dynamics ---");
+        System.out.println("\n--- Processing Airport Dynamics (TimeLine Simulation) ---");
         
-        while (departedFlightsCount < totalFlights) {
+        while (departedFlightsCount < totalFlights) { // end when every flight is departed
+
+            this.timeLine += 1.0; // time is passing..
             
-            for (int i = 0; i < totalFlights; i++) {
-                Flight f = flights.get(i);
-                boolean isDeparted;
-                if (f.getFlightArrivalStatus().equals("Departed")){
-                    isDeparted = true;}
-                else{
-                    isDeparted = false;
+            // update waiting time for each plane on airport
+            for (int i = 0; i < this.flights.size(); i++) {
+                Flight f = this.flights.get(i);
+                
+                if (f.getAssignedGate() == null && f.getFlightArrivalStatus().equals("Landed")) { 
+                    // planes in Queue and wasn't assigned to gate
+                    f.updateFlightInQueueWaitingTime();
+                } else if (f.getAssignedGate() != null && !f.getFlightArrivalStatus().equals("Departed")) {
+                    // planes on gated and getting services or waiting for services
+                    f.updateFlightOnGateWaitingTime(); 
                 }
-                if (f.getAssignedGate() != -1 && !isDeparted) {
-                    List<String> currentRequests = f.getRequestedServices();
+            }
+            
+            for (int i = 0; i < this.flights.size(); i++) { // give every plane that already on gate its services
+                Flight f = this.flights.get(i); 
+                
+                if (f.getAssignedGate() != null && !f.getFlightArrivalStatus().equals("Departed")) { // if plane has gate and not "Departed"
+                    List<String> currentRequests = f.getRequestedServices(); // requested services of plane (i)
+
                     for (int j = 0; j < currentRequests.size(); j++) {
-                        assignServiceUnit(f, currentRequests.get(j));
-                    }
-                }
-            }
-
-            for (int i = 0; i < flights.size(); i++) {
-                Flight f = flights.get(i);
-                boolean isDeparted;
-                if (f.getFlightArrivalStatus().equals("Departed")){
-                    isDeparted = true;}
-                else{
-                    isDeparted = false;
-                }
-                if (f.getAssignedGate() != -1 && !isDeparted) {
-                    if (f.getAssignedUnits().size() == f.getRequestedServices().size()) {
-                        System.out.println("\nFlight [" + f.getFlightId() + "] received all requested services. Departing...");
+                        String reqType = currentRequests.get(j);
                         
-                        try {Thread.sleep(3000);} 
-                        catch (InterruptedException e) {}
-
-                        List<ServiceUnit> units = f.getAssignedUnits(); // freeing all flight's services
-                        for (int k = 0; k < units.size(); k++) {
-                            units.get(k).setAvailable(true);
-                            System.out.println("   -> Service [" + units.get(k).getServiceType() + " ID: " + units.get(k).getUnitId() + "] is now FREE.");
+                        // check service is not already on duty
+                        boolean alreadyAssigned = false;
+                        for (int k = 0; k < f.getAssignedUnits().size(); k++) {
+                            if (f.getAssignedUnits().get(k).getServiceType().equals(reqType)) {
+                                alreadyAssigned = true;
+                                break; // service is already serving the planem, go for next service
+                            }
                         }
-
-                        dispatchFlight(f);
-                        departedFlightsCount++;
-                        System.out.println("--------------------------------------------------");
-                        break;
+                        
+                        if (!alreadyAssigned) { // give service 
+                            assignServiceUnit(f, reqType);
+                        }
                     }
                 }
             }
 
-            try { Thread.sleep(1000); }
-            catch (InterruptedException e) {
+            // re-check which plane did not get all services
+            for (int i = 0; i < this.flights.size(); i++) {
+                Flight f = this.flights.get(i);
+                
+                if (f.getAssignedGate() != null && !f.getFlightArrivalStatus().equals("Departed")) { // if plane has gate and not "Departed"
+                    
+                    if (f.getAssignedUnits().size() == f.getRequestedServices().size() && f.getRequestedServices().size() > 0) {
+                        // plane finished got all services                        
+                        
+                        if (f.getReadyToDepartTime() == -1) {
+                            System.out.println("\nFlight [" + f.getFlightId() + "] received all requested services. Departing...");
+
+                            // ready to depart in 15 minutes..
+                            f.setReadyToDepartTime(this.timeLine + 15.0); 
+                            System.out.println("[Time: " + this.timeLine + "] Flight [" + f.getFlightId() + "] received all services. Will depart at minute: " + f.getReadyToDepartTime());
+                        } 
+                        
+                        else if (this.timeLine >= f.getReadyToDepartTime()) { // is timeline == to plane depart time?
+                            System.out.println("\n[Time: " + this.timeLine + "] Flight [" + f.getFlightId() + "] is DEPARTING now!");
+                            
+                            // freeing plane's services
+                            List<ServiceUnit> units = f.getAssignedUnits(); 
+                            for (int k = 0; k < units.size(); k++) {
+                                units.get(k).setAvailable(true);
+                                System.out.println("   -> Service [" + units.get(k).getServiceType() + " ID: " + units.get(k).getUnitId() + "] is now FREE.");
+                            }
+                        
+                            f.updateFlightTotalWaitingTime(); // update waiting time (Queue + on gate) waiting time
+
+                            // plane is leaving the gate..
+                            dispatchFlight(f);
+                            departedFlightsCount++;
+                        System.out.println("--------------------------------------------------");
+                        }
+                    }
+                }
             }
+
         }
         
+        System.out.println("=== ALL FLIGHTS DEPARTED AT MINUTE: " + this.timeLine + " ===");
         printResults();
     }
 
     public void printResults() {
-        System.out.println("\n==================================================");
-        System.out.println("                 FINAL AIRPORT REPORT                ");
-        System.out.println("==================================================");
-        System.out.println("Flight Statistics:");
-        System.out.println("   - Total Flights Processed: " + flights.size());
-        System.out.println("\nWaiting Time Info:");
+        // ------------------------ Calculations ------------------------
         calculateWaitingTime();
-        System.out.println("\nFinancial & Services:");
-        System.out.println("   - Total Cost of Services: $" + totalCost);
-        System.out.println("   - Available Service Units Now: " + ServiceUnit.getAvailableServiceUnits()); 
-        System.out.println("==================================================");
+        calculateTotalCost();
+        // ------------------------ Calculations ------------------------
+
+        System.out.println("\n=========================================================");
+        System.out.println("                   FINAL AIRPORT REPORT                   ");
+        System.out.println("=========================================================");
+        
+        System.out.println("SIMULATION SUMMARY:");
+        System.out.println("    - Total Simulation Time : " + this.timeLine + " minutes");
+        System.out.println("    - Total Flights Handled : " + this.flights.size() + " flights");
+        
+        System.out.println("\nWAITING TIME STATISTICS:");
+        System.out.println("    - Total Waiting Time    : " + this.totalWaitingTime + " minutes");
+        System.out.println("    - Average Wait / Flight : " + String.format("%.2f", this.averageWaitTime) + " minutes");
+        
+        System.out.println("\nFINANCIAL & RESOURCES:");
+        System.out.println("    - Total Daily Cost      : $" + this.totalCost);
+        System.out.println("    - Total Service Units   : " + this.serviceUnits.size() + " units");
+        System.out.println("    - Available Units Now   : " + ServiceUnit.getAvailableServiceUnits() + " units");
+        
+        System.out.println("=========================================================");
+        System.out.println("         End of Operations - Simulation Complete         ");
+        System.out.println("=========================================================\n");
     }
 
     public void assignRandomServices(Flight flight) {
@@ -195,10 +227,11 @@ public class Airport {
 
     public void assignFlightToGate(Flight flight){
         for (int i = 0; i < this.airportGates.size(); i++){
-            if (!this.airportGates.get(i).getIsAvailable()){
-                this.airportGates.get(i).setAvailable(true);
+            Gate gate = this.airportGates.get(i);
+            if (this.airportGates.get(i).getIsAvailable()){
+                gate.addPlaneToGate(flight);
                 flight.setAssignedGate(this.airportGates.get(i));
-                System.out.println("Flight: " + flight.getFlightId() + " to the gate: " + flight.getAssignedGate());
+                System.out.println("Flight: " + flight.getFlightId() + " to the gate: " + flight.getAssignedGateId());
                 return;
             }
         }
@@ -207,33 +240,32 @@ public class Airport {
         // TODO: Add waiting time here
     }
     
-    public void assignServiceUnit(Flight flight, String requiredServiceType){
-        if (!flight.getAssignedGate().getIsAvailable()){ // flight.getAssignedGate().getIsAvailable() will return boolean
-            return;
-        }
-        for (int i = 0; i < flight.getAssignedUnits().size(); i++) {
-            ServiceUnit u = flight.getAssignedUnits().get(i);
-            if (u.getServiceType().equals(requiredServiceType)) { 
-                return;
-            }
-        }
+    public void assignServiceUnit(Flight flight, String serviceType){
 
         for (int i = 0; i < serviceUnits.size(); i++) {
-            ServiceUnit unit = serviceUnits.get(i); 
-            if (unit.getServiceType().equals(requiredServiceType) && unit.isAvailable()) {
-                System.out.println("Found available: " + requiredServiceType + "!, Dispatching Unit: " + unit.getUnitId() + " for flight: " + flight.getFlightId());
-                unit.provideService(flight);  
-                flight.getAssignedUnits().add(unit);  // will save the unit to the acitve units (method will be changed)
-                calculateTotalCost(unit);
-                return;
+            ServiceUnit currentUnit = serviceUnits.get(i); 
+
+            if (currentUnit.getServiceType().equals(serviceType) && currentUnit.isAvailable()) { // is Same service type and available?
+                
+                System.out.println("Found available: " + serviceType + "!, Dispatching Unit: " + currentUnit.getUnitId() + " for flight: " + flight.getFlightId());
+                
+                currentUnit.provideService(flight);
+                flight.addAssignedServiceToList(currentUnit);
+                
+                return;  // Leave so we don't add similar services
             }
         }
-        System.out.println("Service [" + requiredServiceType + "] is BUSY! Flight [" + flight.getFlightId() + "] is waiting at gate " + flight.getAssignedGate());
+
+
+
+
+
+        // unit is busy now wait
+        // System.out.println("Service [" + serviceType + "] is BUSY! Flight [" + flight.getFlightId() + "] is waiting at gate " + flight.getAssignedGateId());
     }
 
-
     public void releaseGate(Gate g){
-        g.setAvailable(false);
+        g.removeFlight();
         System.out.println("Gate: " + g.getGateId() + " is free now!");
 
         if (!waitingQueue.isEmpty()){ 
@@ -250,35 +282,41 @@ public class Airport {
 
     public void receiveFlight(Flight flight) {
         flights.add(flight);
-        flight.land();
+        flight.land(timeLine);
         assignFlightToGate(flight);
     }
 
     public void dispatchFlight(Flight flight) {
-        int gateToRelease = flight.getAssignedGate();
+        // flight.depart(); 
+        // releaseGate(flight.getAssignedGate());
+        
+        Gate gateToRelease = flight.getAssignedGate(); 
         flight.depart(); 
-        if (gateToRelease != -1) {
+        if (gateToRelease != null) {
             releaseGate(gateToRelease);
         }
     }
 
     public void calculateWaitingTime(){
-        if (waitingQueue.isEmpty()) {
-            System.out.println("No flights in the waiting queue.");
-            return;
+        for (int i = 0; i < this.flights.size(); i++) {
+            Flight f = this.flights.get(i);
+            this.totalWaitingTime += f.getFlightTotalWaitingTime();
         }
 
-        int numberOfWaitingFlights = waitingQueue.size();
-        double estimatedWaitTimePerFlight = 15.0; 
-        
-        totalWaitingTime = numberOfWaitingFlights * estimatedWaitTimePerFlight;
-
-        System.out.println("There are " + numberOfWaitingFlights + " flights waiting.");
-        System.out.println("Estimated total waiting time = " + totalWaitingTime + " mins.");
+        this.averageWaitTime = this.totalWaitingTime / this.flights.size();
     }
 
-    public void calculateTotalCost(ServiceUnit unit){
-        this.totalCost += unit.getCost();
+    public void calculateTotalCost(){
+        this.totalCost = 0.0; 
+
+        for (int i = 0; i < this.serviceUnits.size(); i++) {
+            ServiceUnit currentUnit = this.serviceUnits.get(i);
+            
+            // check if exist in served units history
+            if (!currentUnit.getPlanesServedHistory().isEmpty()) { 
+                this.totalCost += currentUnit.getCost();
+            } 
+        }
     }
 
     public double getTotalCost() {
@@ -287,6 +325,6 @@ public class Airport {
     
 
     public double getCurrentTime() {
-        return currentTime;
+        return timeLine;
     }
 }
