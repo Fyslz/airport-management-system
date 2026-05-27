@@ -119,6 +119,22 @@ public abstract class Flight implements Serviceable{
         System.out.println("---------------------------------------");
     }
 
+    // ==========================================
+    // Getters for Timeline & Audit Logging
+    // ==========================================
+
+    public List<String> getEventTimeline() {
+        return this.eventTimeline;
+    }
+
+    public double getTimeEnteredQueue() {
+        return this.timeEnteredQueue;
+    }
+
+    public double getTimeGateAssigned() {
+        return this.timeGateAssigned;
+    }
+
     
     public void setReadyToDepartTime(double time) { 
         this.readyToDepartTime = time; 
