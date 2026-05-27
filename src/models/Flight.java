@@ -23,6 +23,11 @@ public abstract class Flight implements Serviceable{
     private List<ServiceUnit> assignedUnits = new ArrayList<>(); 
     private List<ServiceUnit> servedUnitsHistory = new ArrayList<>(); 
 
+    // 1. متغيرات التتبع الزمني (Timeline Variables)
+    private List<String> eventTimeline = new ArrayList<>(); // دفتر يوميات الطيارة
+    private double timeEnteredQueue = -1.0;
+    private double timeGateAssigned = -1.0;
+
     private double readyToDepartTime = -1; // not ready to depart
 
 
@@ -83,6 +88,38 @@ public abstract class Flight implements Serviceable{
     }
 
 
+
+    public void logEvent(double currentTime, String eventDescription) {
+        this.eventTimeline.add("[Time: " + currentTime + "] " + eventDescription);
+    }
+
+    public void setTimeEnteredQueue(double time) {
+        this.timeEnteredQueue = time;
+        logEvent(time, "Entered the waiting queue.");
+    }
+
+    public void setTimeGateAssigned(double time, int gateId) {
+        this.timeGateAssigned = time;
+        logEvent(time, "Assigned to Gate: " + gateId);
+    }
+
+    public void logServiceStarted(double time, String serviceType) {
+        logEvent(time, "Service [" + serviceType + "] started.");
+    }
+
+    public void logServiceFinished(double time, String serviceType) {
+        logEvent(time, "Service [" + serviceType + "] finished.");
+    }
+
+    public void printFlightTimeline() {
+        System.out.println("\n--- Timeline for Flight [" + this.flightId + "] ---");
+        for (int i = 0; i < eventTimeline.size(); i++) {
+            System.out.println("  " + eventTimeline.get(i));
+        }
+        System.out.println("---------------------------------------");
+    }
+
+    
     public void setReadyToDepartTime(double time) { 
         this.readyToDepartTime = time; 
     }
@@ -97,6 +134,10 @@ public abstract class Flight implements Serviceable{
     } 
     public Gate getVisitidGate() {
         return visitedGate;
+    }
+
+    public double getCurrentWaitTime() {
+        return this.flightInQueueWaitingTime + this.flightOnGateWaitingTime; 
     }
     public String getFlightId() {return flightId;}
     public double getArrivalTime(){return flightArrivalTime;}

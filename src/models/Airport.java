@@ -117,30 +117,8 @@ public class Airport {
                 }
             }
             
-            for (int i = 0; i < this.flights.size(); i++) { // give every plane that already on gate its services
-                Flight f = this.flights.get(i); 
-                
-                if (f.getAssignedGate() != null && !f.getFlightArrivalStatus().equals("Departed")) { // if plane has gate and not "Departed"
-                    List<String> currentRequests = f.getRequestedServices(); // requested services of plane (i)
-
-                    for (int j = 0; j < currentRequests.size(); j++) {
-                        String reqType = currentRequests.get(j);
-                        
-                        // check service is not already on duty
-                        boolean alreadyAssigned = false;
-                        for (int k = 0; k < f.getAssignedUnits().size(); k++) {
-                            if (f.getAssignedUnits().get(k).getServiceType().equals(reqType)) {
-                                alreadyAssigned = true;
-                                break; // service is already serving the planem, go for next service
-                            }
-                        }
-                        
-                        if (!alreadyAssigned) { // give service 
-                            assignServiceUnit(f, reqType);
-                        }
-                    }
-                }
-            }
+            // give every plane on gate its services (Priority System)
+            assignServicesByPriority();
 
             // re-check which plane did not get all services
             for (int i = 0; i < this.flights.size(); i++) {
@@ -240,6 +218,7 @@ public class Airport {
         // TODO: Add waiting time here
     }
     
+    // dead method tobe deleted
     public void assignServiceUnit(Flight flight, String serviceType){
 
         for (int i = 0; i < serviceUnits.size(); i++) {
@@ -298,6 +277,8 @@ public class Airport {
     }
 
     public void calculateWaitingTime(){
+        // reset the total waiting time
+        this.totalWaitingTime = 0.0;
         for (int i = 0; i < this.flights.size(); i++) {
             Flight f = this.flights.get(i);
             this.totalWaitingTime += f.getFlightTotalWaitingTime();
@@ -318,6 +299,53 @@ public class Airport {
             } 
         }
     }
+
+
+    public void assignServicesByPriority() {
+        for (int i = 0; i < this.serviceUnits.size(); i++) {
+            ServiceUnit currentUnit = this.serviceUnits.get(i);
+
+            if (currentUnit.isAvailable()) {
+                
+                Flight highestPriorityFlight = null;
+                double maxWaitTime = -1.0;
+
+                for (int j = 0; j < this.flights.size(); j++) {
+                    Flight f = this.flights.get(j);
+
+                    if (f.getAssignedGate() != null && !f.getFlightArrivalStatus().equals("Departed")) {
+                        
+                        // Check if service is wanted
+                        boolean needsThisService = f.getRequestedServices().contains(currentUnit.getServiceType());
+                        
+                        boolean alreadyGotIt = false;
+                        for (int k = 0; k < f.getAssignedUnits().size(); k++) {
+                            if (f.getAssignedUnits().get(k).getServiceType().equals(currentUnit.getServiceType())) {
+                                alreadyGotIt = true;
+                                break;
+                            }
+                        }
+
+                        if (needsThisService && !alreadyGotIt) {
+                            double currentWait = f.getFlightInQueueWaitingTime() + f.getFlightOnGateWaitingTime(); 
+                            
+                            if (currentWait > maxWaitTime) {
+                                highestPriorityFlight = f;
+                                maxWaitTime = currentWait;
+                            }
+                        }
+                    }
+                }
+
+                if (highestPriorityFlight != null) {
+                    // System.out.println("Found available: " + currentUnit.getServiceType() + "!, Dispatching to most delayed flight: " + highestPriorityFlight.getFlightId());
+                    currentUnit.provideService(highestPriorityFlight);
+                    highestPriorityFlight.addAssignedServiceToList(currentUnit);
+                }
+            }
+        }
+    }
+
 
     public double getTotalCost() {
         return totalCost;
