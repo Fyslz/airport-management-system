@@ -1,7 +1,9 @@
 package models;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class ServiceUnit {
 
@@ -24,7 +26,7 @@ public abstract class ServiceUnit {
     // History Lists
     private List<Flight> planesServedHistory = new ArrayList<>();
     private List<Gate> gateServedHistory = new ArrayList<>(); 
-
+    private Map<Flight, Double> serviceTimesHistory = new HashMap<>();
 
     // ************************************************
     //  2. Constructors
@@ -57,6 +59,11 @@ public abstract class ServiceUnit {
         // Add to history records
         this.planesServedHistory.add(f);
         this.gateServedHistory.add(f.getAssignedGate());
+    }
+
+    // Save when service got assigned to a flight
+    public void addServiceTimeHistory(Flight f, double timeline) {
+        this.serviceTimesHistory.put(f, timeline);
     }
 
     public void moveToGate(Gate gate) {
@@ -108,6 +115,8 @@ public abstract class ServiceUnit {
     public Gate getCurrentGate() { return currentGate; }
     public List<Flight> getPlanesServedHistory() { return planesServedHistory; }
     public List<Gate> getGateServedHistory() { return gateServedHistory; }
+
+    public Map<Flight, Double> getServiceTimesHistory() { return serviceTimesHistory; }
     // =================================================================
     
 }

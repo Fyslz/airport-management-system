@@ -85,6 +85,8 @@ public abstract class Flight implements Serviceable{
         if (this.assignedGate != null) { // نضيف الخدمة لتاريخ البوابة
             this.assignedGate.addUnitToGateHistory(serviceUnit);
         }
+        // Add when did unit serve plane
+        serviceUnit.addServiceTimeHistory(this, timeline);
     }
 
     // Method to update the list of services that had not been provided yet
