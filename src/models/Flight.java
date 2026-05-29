@@ -1,7 +1,8 @@
 package models;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.HashMap;
+import java.util.Map;
 import interfaces.Serviceable;
 
 public abstract class Flight implements Serviceable{
@@ -31,8 +32,8 @@ public abstract class Flight implements Serviceable{
     // Services Lists
     private List<String> requiredServices = new ArrayList<>();
     private List<ServiceUnit> assignedUnits = new ArrayList<>();
-    private List<ServiceUnit> servedUnitsHistory = new ArrayList<>();
     private List<String> unServedServicesUnits = new ArrayList<>();
+    private Map<ServiceUnit, Double> whenServiceUnitServed = new HashMap<>();
 
 
     // ************************************************
@@ -75,9 +76,15 @@ public abstract class Flight implements Serviceable{
         this.requiredServices.add(serviceType);
     }
 
-    public void addAssignedServiceToList(ServiceUnit serviceUnit) {
+    public void addAssignedServiceToList(ServiceUnit serviceUnit, double timeline) {
+        // The service has served
         this.assignedUnits.add(serviceUnit);
-        this.servedUnitsHistory.add(serviceUnit);
+        // add history when each service has served
+        this.whenServiceUnitServed.put(serviceUnit, timeline);
+        // Add service unit to Gate Service Units History
+        if (this.assignedGate != null) { // نضيف الخدمة لتاريخ البوابة
+            this.assignedGate.addUnitToGateHistory(serviceUnit);
+        }
     }
 
     // Method to update the list of services that had not been provided yet
@@ -109,33 +116,27 @@ public abstract class Flight implements Serviceable{
     //  4. Encapsulation Methods
     // ************************************************
     
-    // Get Flight Info
+    // ========================== Flight Info ==========================
     public String getFlightId() { return flightId; }
-    
     public double getArrivalTime() { return flightArrivalTime; }
-    
     public String getFlightArrivalStatus() { return flightArrivalStatus; }
-    
     public int getPriority() { return priority; }
+    // =================================================================
 
     // ======================= GATE Assignments ========================
     public Gate getAssignedGate() { return this.assignedGate; }
-
-    public void setAssignedGate(Gate assignedGate) { 
-        this.assignedGate = assignedGate;
-    } 
-
+    public void setAssignedGate(Gate assignedGate) { this.assignedGate = assignedGate; } 
     public int getAssignedGateId() { return this.assignedGate.getGateId(); } 
     // =================================================================
 
 
-    // Get Times
     // ========================== QUEUE TIMES ==========================
     public void updateFlightInQueueWaitingTime(){ this.flightInQueueWaitingTime += 1.0; } // Time passes while the flight is in Queue waiting to get assigned to a gate
     public double getFlightInQueueWaitingTime() { return this.flightInQueueWaitingTime; }
     public void setTimeEnteredQueue(double timeline) { this.timeEnteredQueue = timeline; }
     public double getTimeEnteredQueue() { return this.timeEnteredQueue; }
     // =================================================================
+
 
     // ========================== GATE TIMES ===========================
     public void updateFlightOnGateWaitingTime(){ this.flightOnGateWaitingTime += 1.0; } // Time passes while the flight is on Gate waiting to get services units to be done
@@ -144,21 +145,21 @@ public abstract class Flight implements Serviceable{
     public double getTimeGateAssigned() { return this.timeGateAssigned; }
     // =================================================================
 
+
     // ====================== TOTAL WAITING TIMES =======================
     // Total Time passed to the flight waiting..
     public void updateFlightTotalWaitingTime(){ this.flightTotalWaitingTime = this.flightOnGateWaitingTime + this.flightInQueueWaitingTime; }
     public double getFlightTotalWaitingTime() { return this.flightTotalWaitingTime; }
     // ==================================================================
 
-    public void setReadyToDepartTime(double time) { this.readyToDepartTime = time; }
-    public double getReadyToDepartTime() { return this.readyToDepartTime; }
-
+    
     // ======================== Services Lists =========================
     public List<String> getRequestedServices() { return this.requiredServices;}
     public List<ServiceUnit> getAssignedUnits() { return this.assignedUnits; }
-    public List<String> getUnServedServicesUnits() { 
-        updateUnServedServices();
-        return unServedServicesUnits; }
+    public Map<ServiceUnit, Double> getWhenServiceUnitServed() { return whenServiceUnitServed; }
+    public List<String> getUnServedServicesUnits() { updateUnServedServices(); return unServedServicesUnits; }
     // =================================================================
-    
+
+    public void setReadyToDepartTime(double time) { this.readyToDepartTime = time; }
+    public double getReadyToDepartTime() { return this.readyToDepartTime; }
 }
