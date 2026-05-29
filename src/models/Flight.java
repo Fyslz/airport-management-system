@@ -133,7 +133,7 @@ public abstract class Flight implements Serviceable{
     // ========================== QUEUE TIMES ==========================
     public void updateFlightInQueueWaitingTime(){ this.flightInQueueWaitingTime += 1.0; } // Time passes while the flight is in Queue waiting to get assigned to a gate
     public double getFlightInQueueWaitingTime() { return this.flightInQueueWaitingTime; }
-    public void setTimeEnteredQueue(double timeline) { this.timeGateAssigned = timeline; }
+    public void setTimeEnteredQueue(double timeline) { this.timeEnteredQueue = timeline; }
     public double getTimeEnteredQueue() { return this.timeEnteredQueue; }
     // =================================================================
 
