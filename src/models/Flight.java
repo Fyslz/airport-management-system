@@ -123,14 +123,14 @@ public abstract class Flight implements Serviceable{
     public int getPriority() { return priority; }
     // =================================================================
 
-    // ======================= GATE Assignments ========================
+    // ======================= Gate Assignments ========================
     public Gate getAssignedGate() { return this.assignedGate; }
     public void setAssignedGate(Gate assignedGate) { this.assignedGate = assignedGate; } 
     public int getAssignedGateId() { return this.assignedGate.getGateId(); } 
     // =================================================================
 
 
-    // ========================== QUEUE TIMES ==========================
+    // ========================== Queue Times ==========================
     public void updateFlightInQueueWaitingTime(){ this.flightInQueueWaitingTime += 1.0; } // Time passes while the flight is in Queue waiting to get assigned to a gate
     public double getFlightInQueueWaitingTime() { return this.flightInQueueWaitingTime; }
     public void setTimeEnteredQueue(double timeline) { this.timeEnteredQueue = timeline; }
@@ -138,7 +138,7 @@ public abstract class Flight implements Serviceable{
     // =================================================================
 
 
-    // ========================== GATE TIMES ===========================
+    // ========================== Gate Times ===========================
     public void updateFlightOnGateWaitingTime(){ this.flightOnGateWaitingTime += 1.0; } // Time passes while the flight is on Gate waiting to get services units to be done
     public double getFlightOnGateWaitingTime() { return this.flightOnGateWaitingTime; }
     public void setTimeGateAssigned(double timeline) { this.timeGateAssigned = timeline; }
@@ -146,7 +146,7 @@ public abstract class Flight implements Serviceable{
     // =================================================================
 
 
-    // ====================== TOTAL WAITING TIMES =======================
+    // ====================== Total Waiting Times =======================
     // Total Time passed to the flight waiting..
     public void updateFlightTotalWaitingTime(){ this.flightTotalWaitingTime = this.flightOnGateWaitingTime + this.flightInQueueWaitingTime; }
     public double getFlightTotalWaitingTime() { return this.flightTotalWaitingTime; }

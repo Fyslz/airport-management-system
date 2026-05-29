@@ -1,6 +1,5 @@
 package main;
 
-import javafx.application.Application;
 import models.Airport;
 
 public class Main {

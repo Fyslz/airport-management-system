@@ -4,93 +4,110 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ServiceUnit {
-    private int unitId;
-    private double serviceDuration;
-    private static int availableServiceUnits = 0;
-    private boolean isAvailable;
-    private double cost;
-    private int currentGate;
-    private String serviceType; // to calculate how many service we got in each (Airport class)
 
+    // ************************************************
+    //  1. DATA FIELD / VARIABLES
+    // ************************************************
+
+    private static int availableServiceUnits = 0; // Total available services across all units
+
+    // Unit Info
+    private int unitId;
+    private String serviceType; 
+    private double serviceDuration;
+    private double cost;
+    private boolean isAvailable;
+    private int currentGateId; // -1 indicates unassigned gate
     private Flight activePlaneServing;
-    private List<Flight> planesServedHistory = new ArrayList<>();
-    private Gate activeOnGate; 
-    private List<Gate> GateServedHistory = new ArrayList<>();
+    private Gate currentGate; 
     
+    // History Lists
+    private List<Flight> planesServedHistory = new ArrayList<>();
+    private List<Gate> gateServedHistory = new ArrayList<>(); 
+
+
+    // ************************************************
+    //  2. Constructors
+    // ************************************************
     public ServiceUnit(int unitId, double serviceDuration, double cost, String serviceType) {
         this.unitId = unitId;
         this.serviceDuration = serviceDuration;
         this.cost = cost;
-        this.serviceType = serviceType; // how many service we have of this service unit
+        this.serviceType = serviceType; 
+        
         this.isAvailable = true;
-        this.currentGate = -1; // indicates unassigned gate
-        availableServiceUnits++; // total available services (ignore type)
+        this.currentGateId = -1; // Unassigned by default
+
+        availableServiceUnits++; // Increment total available services upon creation
     }
 
+
+    // ************************************************
+    //  3. Methods
+    // ************************************************
+    
+    // Abstract method meant to be implemented by child classes
     public abstract void provideService(Flight f);
 
     public void assignToFlight(Flight f) {
+        // Assign service to Plane
         this.activePlaneServing = f;
-        this.activeOnGate = f.getAssignedGate(); // taking gate from plane
+        this.currentGate = f.getAssignedGate(); // Get gate from the assigned plane
         
+        // Add to history records
         this.planesServedHistory.add(f);
-        this.GateServedHistory.add(f.getAssignedGate());
-        
+        this.gateServedHistory.add(f.getAssignedGate());
     }
 
-    public void moveToGate(int gateId) {
-        this.currentGate = gateId;
+    public void moveToGate(Gate gate) {
+        this.currentGate = gate;
     }
 
-    public boolean isAvailable() {
-        return isAvailable;
-    }
 
-    public double getCost() {
-        return cost;
-    }
+    // ************************************************
+    //  4. Encapsulation Methods
+    // ************************************************
 
-    public double getServiceDuration() {
-        return serviceDuration;
-    }
+    // ======================== Static Method ==========================
+    public static int getAvailableServiceUnits() { return availableServiceUnits; }
+    // =================================================================
 
+
+    // =========================== Unit Info ===========================
+    public int getUnitId() { return unitId; }
+    public String getServiceType() { return serviceType; }
+    public double getServiceDuration() { return serviceDuration; }
+    // =================================================================
+
+
+    // ======================= Status & Location =======================
+    public boolean isAvailable() { return isAvailable; }
     public void setAvailable(boolean available) {
-        if (this.isAvailable != available){
+        if (this.isAvailable != available) {
             this.isAvailable = available;
-            if (available) availableServiceUnits++;
-            else availableServiceUnits--;
+            
+            // Adjust the static counter based on availability
+            if (available) {
+                availableServiceUnits++;
+            } else {
+                availableServiceUnits--;
+            }
         }
     }
-    public int getUnitId() {
-        return unitId;
-    }
+    // =================================================================
 
-    public int getCurrentGate() {
-        return currentGate;
-    }
 
-    public static int getAvailableServiceUnits() {
-        return availableServiceUnits;
-    }
+    // ======================= Cost Calculations =======================    
+    public double getCost() { return cost; }
+    // =================================================================
 
-    public String getServiceType() {return serviceType;
-        
-    }
 
-    public Gate getActiveOnGate() {
-        return activeOnGate;
-    }
-    
-    public List<Gate> getGateServedHistory() {
-        return GateServedHistory;
-    }
-
-    public Flight getActivePlaneServing() {
-        return activePlaneServing;
-    }
-
-    public List<Flight> getPlanesServedHistory() {
-        return planesServedHistory;
-    }
+    // ========================= Flight & Gate =========================
+    public int getCurrentGateId() { return currentGateId; }
+    public Flight getActivePlaneServing() { return activePlaneServing; }
+    public Gate getCurrentGate() { return currentGate; }
+    public List<Flight> getPlanesServedHistory() { return planesServedHistory; }
+    public List<Gate> getGateServedHistory() { return gateServedHistory; }
+    // =================================================================
     
 }
