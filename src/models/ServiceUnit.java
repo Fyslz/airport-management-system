@@ -18,6 +18,7 @@ public abstract class ServiceUnit {
     private String serviceType; 
     private double serviceDuration;
     private double cost;
+    // private double totalCost;
     private boolean isAvailable;
     private int currentGateId; // -1 indicates unassigned gate
     private Flight activePlaneServing;
@@ -64,6 +65,7 @@ public abstract class ServiceUnit {
     // Save when service got assigned to a flight
     public void addServiceTimeHistory(Flight f, double timeline) {
         this.serviceTimesHistory.put(f, timeline);
+        // addServiceFee();
     }
 
     public void moveToGate(Gate gate) {
@@ -104,8 +106,10 @@ public abstract class ServiceUnit {
     // =================================================================
 
 
-    // ======================= Cost Calculations =======================    
-    public double getCost() { return cost; }
+    // ======================= Cost Calculations =======================
+    // public void addServiceFee() { this.totalCost += this.cost; }
+    // public double getTotalCost() { return totalCost; }
+    public double getCost() { return cost; } // Service unit
     // =================================================================
 
 
