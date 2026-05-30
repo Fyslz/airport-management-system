@@ -4,7 +4,9 @@ import models.Airport;
 
 public class Main {
     public static void main(String[] args) {
-        Airport myAirport = new Airport(8);
+        // بوابة واحدة فقط لاستفزاز نظام الطابور!
+        Airport myAirport = new Airport(1);
+        
         myAirport.run();
     }
 }

@@ -61,44 +61,28 @@ public class Airport {
     // ************************************************
     
     // ======================= Airport Management ======================
-
-    private void generateServices(){
-            System.out.println("\n--- Initializing Service Units ---");
-        addServiceUnit(new Ambulance(101));         addServiceUnit(new Ambulance(102));
-        addServiceUnit(new FuelTruck(201));         addServiceUnit(new FuelTruck(202));
-        addServiceUnit(new CleaningCrew(301));      addServiceUnit(new CleaningCrew(302));
-        addServiceUnit(new BaggageHandler(401));    addServiceUnit(new BaggageHandler(402));
-        addServiceUnit(new CateringTruck(501));     addServiceUnit(new CateringTruck(502));
-        addServiceUnit(new Stairs(601));            addServiceUnit(new Stairs(602));
-        addServiceUnit(new PassengerBus(701));      addServiceUnit(new PassengerBus(702));
-        addServiceUnit(new PushbackTug(801));       addServiceUnit(new PushbackTug(802));
-        addServiceUnit(new FireTruck(901));         addServiceUnit(new FireTruck(902));
-        addServiceUnit(new MaintenanceService(1001)); addServiceUnit(new MaintenanceService(1002));
-        addServiceUnit(new CustomsService(1101));   addServiceUnit(new CustomsService(1102));
-        addServiceUnit(new SpecialAssistance(1201));  addServiceUnit(new SpecialAssistance(1202));
-
-    }
-    private void generateFlights(){
-        System.out.println("--- Generating 10 Flights ---");
-        Flight[] incomingFlights = new Flight[10];
+private void generateServices() {
+        System.out.println("\n--- Initializing Service Units (SCENARIO 5 - EVIL) ---");
+        this.serviceUnits.clear(); 
         
-        incomingFlights[0] = new PassengerPlane("SV111", 1.0, 1, 150);
-        incomingFlights[1] = new CargoPlane("XY222", 2.0, 2, 2000.0);
-        incomingFlights[2] = new PassengerPlane("EK333", 3.0, 1, 300);
-        incomingFlights[3] = new CargoPlane("QR444", 4.0, 1, 1500.0);
-        incomingFlights[4] = new PassengerPlane("GF555", 5.0, 2, 180);
-        incomingFlights[5] = new PassengerPlane("WY666", 6.0, 3, 220);
-        incomingFlights[6] = new CargoPlane("MS777", 7.0, 1, 3500.0);
-        incomingFlights[7] = new PassengerPlane("TK888", 8.0, 2, 250);
-        incomingFlights[8] = new PassengerPlane("BA999", 9.0, 1, 280);
-        incomingFlights[9] = new CargoPlane("LH100", 10.0, 1, 4000.0);
+        // المطار طفران، ما فيه إلا درج واحد فقط!
+        addServiceUnit(new Stairs(601)); 
+    }
 
-        System.out.println("--- Assigning Services & Receiving Flights ---");
-        for (int i = 0; i < 10; i++) {
-            assignRandomServices(incomingFlights[i]);
-            
-            receiveFlight(incomingFlights[i]);
-        }
+    private void generateFlights() {
+        System.out.println("--- Generating 1 Cursed Flight ---");
+        this.flights.clear();
+
+        Flight cursedFlight = new PassengerPlane("DOOM-666", 1.0, 1, 150);
+        
+        // الطيارة تطلب الدرج (موجود وبتاخذه)
+        cursedFlight.requestService("Stairs"); 
+        
+        // 🚨 الطلب الخبيث: تطلب بنزين، والمطار ما عنده ولا سيارة بنزين!
+        cursedFlight.requestService("FuelTruck"); 
+
+        System.out.println("--- Receiving Cursed Flight ---");
+        receiveFlight(cursedFlight);
     }
     
     public void run() {
@@ -116,20 +100,103 @@ public class Airport {
             
             this.timeLine += 1.0; // Time ticks forward..
             
-            // Step 1: Update wait times for all planes (in Queue or on Gates)
-            updateActiveFlightsWaitingTimes();
-            
-            // Step 2: Dispatch available services to planes that need them
-            assignServiceUnit(); 
+            // ---------------------------------------------------------
+            // أمر طباعة لتتبع مرور الوقت في المحاكاة
+            System.out.println("\n[ >>> Minute: " + this.timeLine + " <<< ]");
+            // ---------------------------------------------------------
 
-            // Step 3: Check if any plane finished its services and let it depart
+            updateActiveFlightsWaitingTimes();
+            assignServiceUnit(); 
             processReadyDepartures();
+            
+            // تحديث العداد بناءً على عدد الطيارات اللي غادرت فعلاً
+            departedFlightsCount = getDepartedFlightsCount();
+
+            // ---------------------------------------------------------
+            // إبطاء التنفيذ لمدة ثانية واحدة (1000 ملي ثانية) لتقرأ المخرجات
+            try {
+                Thread.sleep(1000); 
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            // ---------------------------------------------------------
         }
         
         System.out.println("\n=== ALL FLIGHTS DEPARTED AT MINUTE: " + this.timeLine + " ===");
         printResults();
     }
     
+    // دالة مساعدة لحساب الطيارات المغادرة وتحديث الـ Loop
+    private int getDepartedFlightsCount() {
+        int count = 0;
+        for (Flight f : this.flights) {
+            if (f.getFlightArrivalStatus().equals("Departed")) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+
+    // ======================== Display Results ========================
+    // Flight Summary Report
+    public void printSingleFlightSummary(Flight f) {
+        if (f == null) {
+            System.out.println("Error: Provided flight is null.");
+            return;
+        }
+
+        System.out.println("Flight ID: [" + f.getFlightId() + "] | Status: " + f.getFlightArrivalStatus());
+        System.out.println("---------------------------------------------------------");
+
+        // 1. Queue Information
+        if (f.getTimeEnteredQueue() != -1.0) {
+            System.out.println("  [Queue] Entered Queue at Minute : " + f.getTimeEnteredQueue());
+            System.out.println("  [Queue] Time Waited in Queue    : " + f.getFlightInQueueWaitingTime() + " mins");
+        } else {
+            System.out.println("  [Queue] Status                  : Direct to Gate (No Queue)");
+        }
+
+        // 2. Gate Information
+        if (f.getAssignedGate() != null || f.getFlightArrivalStatus().equals("Departed")) {
+            System.out.println("  [Gate]  Assigned Gate ID        : " + f.getAssignedGateId());
+            System.out.println("  [Gate]  Parked at Minute        : " + (f.getTimeGateAssigned() != -1.0 ? f.getTimeGateAssigned() : "N/A"));
+            System.out.println("  [Gate]  Time Waited on Gate     : " + f.getFlightOnGateWaitingTime() + " mins");
+        } else {
+            System.out.println("  [Gate]  Status                  : Still waiting in Queue...");
+        }
+
+        // 3. Services Information
+        System.out.println("  [Services] Requested: " + f.getRequestedServices().size() + " | Received: " + f.getAssignedUnits().size());
+        if (!f.getAssignedUnits().isEmpty()) {
+            for (ServiceUnit unit : f.getAssignedUnits()) {
+                double serveTime = f.getWhenServiceUnitServed().getOrDefault(unit, -1.0);
+                System.out.println("      -> Received: " + unit.getServiceType() + " [ID: " + unit.getUnitId() + "] at Minute: " + serveTime);
+            }
+        }
+
+        // 4. Extra Information
+        if (f instanceof CargoPlane) {
+            System.out.println("  [Extra] Cargo Weight            : " + ((CargoPlane) f).getCargoWeight() + " kg");
+        } else if (f instanceof PassengerPlane) {
+            System.out.println("  [Extra] Passenger Count         : " + ((PassengerPlane) f).getPassengerCount() + " passengers");
+        }
+        
+        System.out.println("  [Total] Total Wait Time         : " + f.getFlightTotalWaitingTime() + " mins");
+        System.out.println("=========================================================");
+    }
+
+    // All Flights Summary Report
+    public void printAllFlightsSummary() {
+        System.out.println("\n\n=========================================================");
+        System.out.println("                DETAILED FLIGHTS TRACKING LOG            ");
+        System.out.println("=========================================================");
+
+        for (Flight f : this.flights) {
+            printSingleFlightSummary(f);
+        }
+    }
+
     public void printResults() {
         // ------------------------ Calculations ------------------------
         calculateAvgWaitingTime();
@@ -217,6 +284,7 @@ public class Airport {
             if (gate.getIsAvailable()) {
                 gate.addPlaneToGate(flight);
                 flight.setAssignedGate(gate);
+                flight.setTimeGateAssigned(this.timeLine);
                 System.out.println("Flight: " + flight.getFlightId() + " to the gate: " + flight.getAssignedGateId());
                 return;
             }
@@ -224,8 +292,8 @@ public class Airport {
         
         // If no gates are available, add to the waiting queue
         this.waitingQueue.add(flight);
+        flight.setTimeGateAssigned(this.timeLine);
         System.out.println("Flight: " + flight.getFlightId() + " is waiting for a free gate...");
-        // TODO: Add waiting time tracking here
     }
 
     public void releaseGate(Gate g) {
