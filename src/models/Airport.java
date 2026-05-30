@@ -100,84 +100,39 @@ public class Airport {
             receiveFlight(incomingFlights[i]);
         }
     }
-
-    public void run(){
+    
+    public void run() {
         System.out.println("=== AIRPORT SIMULATION STARTED ===");
         generateServices();
-        generateFlights(); // generate the flights and service unis
+        generateFlights(); 
         
         int totalFlights = this.flights.size();
         int departedFlightsCount = 0;
 
         System.out.println("\n--- Processing Airport Dynamics (TimeLine Simulation) ---");
         
-        while (departedFlightsCount < totalFlights) { // end when every flight is departed
-
-            this.timeLine += 1.0; // time is passing..
+        // Main Simulation Loop
+        while (departedFlightsCount < totalFlights) { 
             
-            // update waiting time for each plane on airport
-            for (int i = 0; i < this.flights.size(); i++) {
-                Flight f = this.flights.get(i);
-                
-                if (f.getAssignedGate() == null && f.getFlightArrivalStatus().equals("Landed")) { 
-                    // planes in Queue and wasn't assigned to gate
-                    f.updateFlightInQueueWaitingTime();
-                } else if (f.getAssignedGate() != null && !f.getFlightArrivalStatus().equals("Departed")) {
-                    // planes on gated and getting services or waiting for services
-                    f.updateFlightOnGateWaitingTime(); 
-                }
-            }
+            this.timeLine += 1.0; // Time ticks forward..
             
-            // give every plane on gate its services (Priority System)
-            assignServicesByPriority();
+            // Step 1: Update wait times for all planes (in Queue or on Gates)
+            updateActiveFlightsWaitingTimes();
+            
+            // Step 2: Dispatch available services to planes that need them
+            assignServiceUnit(); 
 
-            // re-check which plane did not get all services
-            for (int i = 0; i < this.flights.size(); i++) {
-                Flight f = this.flights.get(i);
-                
-                if (f.getAssignedGate() != null && !f.getFlightArrivalStatus().equals("Departed")) { // if plane has gate and not "Departed"
-                    
-                    if (f.getAssignedUnits().size() == f.getRequestedServices().size() && f.getRequestedServices().size() > 0) {
-                        // plane finished got all services                        
-                        
-                        if (f.getReadyToDepartTime() == -1) {
-                            System.out.println("\nFlight [" + f.getFlightId() + "] received all requested services. Departing...");
-
-                            // ready to depart in 15 minutes..
-                            f.setReadyToDepartTime(this.timeLine + 15.0); 
-                            System.out.println("[Time: " + this.timeLine + "] Flight [" + f.getFlightId() + "] received all services. Will depart at minute: " + f.getReadyToDepartTime());
-                        } 
-                        
-                        else if (this.timeLine >= f.getReadyToDepartTime()) { // is timeline == to plane depart time?
-                            System.out.println("\n[Time: " + this.timeLine + "] Flight [" + f.getFlightId() + "] is DEPARTING now!");
-                            
-                            // freeing plane's services
-                            List<ServiceUnit> units = f.getAssignedUnits(); 
-                            for (int k = 0; k < units.size(); k++) {
-                                units.get(k).setAvailable(true);
-                                System.out.println("   -> Service [" + units.get(k).getServiceType() + " ID: " + units.get(k).getUnitId() + "] is now FREE.");
-                            }
-                        
-                            f.updateFlightTotalWaitingTime(); // update waiting time (Queue + on gate) waiting time
-
-                            // plane is leaving the gate..
-                            dispatchFlight(f);
-                            departedFlightsCount++;
-                        System.out.println("--------------------------------------------------");
-                        }
-                    }
-                }
-            }
-
+            // Step 3: Check if any plane finished its services and let it depart
+            processReadyDepartures();
         }
         
-        System.out.println("=== ALL FLIGHTS DEPARTED AT MINUTE: " + this.timeLine + " ===");
+        System.out.println("\n=== ALL FLIGHTS DEPARTED AT MINUTE: " + this.timeLine + " ===");
         printResults();
     }
 
     public void printResults() {
         // ------------------------ Calculations ------------------------
-        calculateWaitingTime();
+        calculateAvgWaitingTime();
         calculateTotalCost();
         // ------------------------ Calculations ------------------------
 
@@ -201,6 +156,36 @@ public class Airport {
         System.out.println("=========================================================");
         System.out.println("         End of Operations - Simulation Complete         ");
         System.out.println("=========================================================\n");
+    }
+
+    // Free units and gate when plane is done
+    private void processReadyDepartures() {
+
+        for (int i = 0; i < this.flights.size(); i++) {
+            Flight f = this.flights.get(i);
+            
+            // Skip flights on Queue or departed already
+            if (f.getAssignedGate() == null || f.getFlightArrivalStatus().equals("Departed")) {
+                continue;
+            }
+            
+            // Check if the flight has received all its services
+            if (f.getAssignedUnits().size() == f.getRequestedServices().size()) {
+                
+                System.out.println("\n[Time: " + this.timeLine + "] Flight [" + f.getFlightId() + "] received all services. DEPARTING now!");
+                
+                // Freeing all service units attached to this flight
+                List<ServiceUnit> units = f.getAssignedUnits(); 
+                for (int k = 0; k < units.size(); k++) {
+                    units.get(k).setAvailable(true);
+                    System.out.println("   -> Service [" + units.get(k).getServiceType() + " ID: " + units.get(k).getUnitId() + "] is now FREE.");
+                }
+            
+                f.updateFlightTotalWaitingTime(); // Find Total Waiting time for this plane
+                dispatchFlight(f); // Dispatch flight and free gate
+                System.out.println("--------------------------------------------------");
+            }
+        }
     }
 
     // ======================= Flight Management =======================
@@ -289,6 +274,22 @@ public class Airport {
     }
 
     // ============================= Time ==============================
+    
+    // Update the waiting time for all flights
+    private void updateActiveFlightsWaitingTimes() {
+        for (int i = 0; i < this.flights.size(); i++) {
+            Flight f = this.flights.get(i);
+            
+            // If plane is waiting in Queue
+            if (f.getAssignedGate() == null && f.getFlightArrivalStatus().equals("Landed")) { 
+                f.updateFlightInQueueWaitingTime();
+            } 
+            // If plane is parked on a Gate and waiting for services
+            else if (f.getAssignedGate() != null && !f.getFlightArrivalStatus().equals("Departed")) {
+                f.updateFlightOnGateWaitingTime(); 
+            }
+        }
+    }
     // Get most waited plane that is still waiting for a service
     private Flight findMostDelayedFlightForService(ServiceUnit unit) {
         Flight highestPriorityFlight = null;
@@ -315,6 +316,7 @@ public class Airport {
         // Return most waited plane
         return highestPriorityFlight;
     }
+    // Average waiting time for a plane in airport
     public void calculateAvgWaitingTime() {
         this.totalWaitingTime = 0.0; // Reset total
         
