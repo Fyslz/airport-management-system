@@ -1,10 +1,10 @@
-package main;
+package main; // تأكد من اسم الباكيج حقك
 
-import models.Airport;
+import javafx.application.Application;
 
 public class Main {
     public static void main(String[] args) {
-        Airport myAirport = new Airport(2); // بوابتين
-        myAirport.run();
+        // هذا السطر يروح يفتح كلاس الواجهة ويشغل دالة start() اللي فيه
+        Application.launch(AirportGUI.class, args);
     }
 }
