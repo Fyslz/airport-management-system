@@ -129,29 +129,34 @@ public class Airport {
         System.out.println("\n=== ALL FLIGHTS DEPARTED AT MINUTE: " + this.timeLine + " ===");
         printResults();
     }
-
+    
     public void printResults() {
         // ------------------------ Calculations ------------------------
         calculateAvgWaitingTime();
-        calculateTotalCost();
+        double fleetCost = calculateTotalCost();
+        double operationalCost = calculateOperationalCost();
         // ------------------------ Calculations ------------------------
 
         System.out.println("\n=========================================================");
-        System.out.println("                   FINAL AIRPORT REPORT                   ");
+        System.out.println("                  FINAL AIRPORT REPORT                   ");
         System.out.println("=========================================================");
         
-        System.out.println("SIMULATION SUMMARY:");
-        System.out.println("    - Total Simulation Time : " + this.timeLine + " minutes");
-        System.out.println("    - Total Flights Handled : " + this.flights.size() + " flights");
+        System.out.println("1. SIMULATION SUMMARY:");
+        System.out.println("   - Total Simulation Time   : " + this.timeLine + " minutes");
+        System.out.println("   - Total Flights Handled   : " + this.flights.size() + " flights");
         
-        System.out.println("\nWAITING TIME STATISTICS:");
-        System.out.println("    - Total Waiting Time    : " + this.totalWaitingTime + " minutes");
-        System.out.println("    - Average Wait / Flight : " + String.format("%.2f", this.averageWaitTime) + " minutes");
+        System.out.println("\n2. WAITING TIME STATISTICS:");
+        System.out.println("   - Total Waiting Time      : " + this.totalWaitingTime + " minutes");
+        System.out.println("   - Average Wait / Flight   : " + String.format("%.2f", this.averageWaitTime) + " minutes");
         
-        System.out.println("\nFINANCIAL & RESOURCES:");
-        System.out.println("    - Total Daily Cost      : $" + this.totalCost);
-        System.out.println("    - Total Service Units   : " + this.serviceUnits.size() + " units");
-        System.out.println("    - Available Units Now   : " + ServiceUnit.getAvailableServiceUnits() + " units");
+        System.out.println("\n3. FINANCIAL REPORT:");
+        System.out.println("   - Total Fleet Capacity    : $" + String.format("%.2f", fleetCost));
+        System.out.println("   - Actual Operational Cost : $" + String.format("%.2f", operationalCost));
+        System.out.println("   - Unused Resource Value   : $" + String.format("%.2f", (fleetCost - operationalCost)));
+        
+        System.out.println("\n4. RESOURCES STATUS:");
+        System.out.println("   - Total Service Units     : " + this.serviceUnits.size() + " units");
+        System.out.println("   - Currently Available     : " + ServiceUnit.getAvailableServiceUnits() + " units");
         
         System.out.println("=========================================================");
         System.out.println("         End of Operations - Simulation Complete         ");
