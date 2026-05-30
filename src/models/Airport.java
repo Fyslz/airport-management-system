@@ -60,9 +60,10 @@ public class Airport {
     //  3. Methods
     // ************************************************
     
-    // ================== Airport Management =================
-    public void generateFlights(){
-    System.out.println("\n--- Initializing Service Units ---");
+    // ======================= Airport Management ======================
+
+    private void generateServices(){
+            System.out.println("\n--- Initializing Service Units ---");
         addServiceUnit(new Ambulance(101));         addServiceUnit(new Ambulance(102));
         addServiceUnit(new FuelTruck(201));         addServiceUnit(new FuelTruck(202));
         addServiceUnit(new CleaningCrew(301));      addServiceUnit(new CleaningCrew(302));
@@ -76,6 +77,8 @@ public class Airport {
         addServiceUnit(new CustomsService(1101));   addServiceUnit(new CustomsService(1102));
         addServiceUnit(new SpecialAssistance(1201));  addServiceUnit(new SpecialAssistance(1202));
 
+    }
+    private void generateFlights(){
         System.out.println("--- Generating 10 Flights ---");
         Flight[] incomingFlights = new Flight[10];
         
@@ -100,6 +103,7 @@ public class Airport {
 
     public void run(){
         System.out.println("=== AIRPORT SIMULATION STARTED ===");
+        generateServices();
         generateFlights(); // generate the flights and service unis
         
         int totalFlights = this.flights.size();
@@ -199,7 +203,7 @@ public class Airport {
         System.out.println("=========================================================\n");
     }
 
-    // ================== Flight Management ==================
+    // ======================= Flight Management =======================
 
     public void receiveFlight(Flight flight) {
         this.flights.add(flight);
@@ -216,7 +220,7 @@ public class Airport {
         }
     }
 
-    // ================== Gate Management ====================
+    // ======================= Gate Management =========================
 
     public void assignFlightToGate(Flight flight) {
         for (Gate gate : this.airportGates) {
@@ -246,7 +250,7 @@ public class Airport {
         }
     }
 
-    // ================= Service Management ==================
+    // ====================== Service Management =======================
 
     public void addServiceUnit(ServiceUnit unit) {
         this.serviceUnits.add(unit);
@@ -265,67 +269,53 @@ public class Airport {
         }
     }
 
-    public void assignServicesByPriority() {
+    // assign service to most waited flight
+    public void assignServiceUnit() {
         for (ServiceUnit currentUnit : this.serviceUnits) {
+            // Check for Available services only
+            if (!currentUnit.isAvailable()) {
+                continue; 
+            }
             
-            if (currentUnit.isAvailable()) {
-                Flight highestPriorityFlight = null;
-                double maxWaitTime = -1.0;
+            // Find most delayed plane that is waiting for service
+            Flight targetFlight = findMostDelayedFlightForService(currentUnit);
 
-                // Find the most delayed flight that needs this specific service
-                for (Flight f : this.flights) {
-                    if (f.getAssignedGate() != null && !f.getFlightArrivalStatus().equals("Departed")) {
-                        
-                        // Check if the flight requested this service type
-                        boolean needsThisService = f.getRequestedServices().contains(currentUnit.getServiceType());
-                        boolean alreadyGotIt = false;
-                        
-                        for (ServiceUnit assignedUnit : f.getAssignedUnits()) {
-                            if (assignedUnit.getServiceType().equals(currentUnit.getServiceType())) {
-                                alreadyGotIt = true;
-                                break;
-                            }
-                        }
-
-                        // If the flight needs the service and hasn't received it yet
-                        if (needsThisService && !alreadyGotIt) {
-                            double currentWait = f.getFlightInQueueWaitingTime() + f.getFlightOnGateWaitingTime(); 
-                            
-                            if (currentWait > maxWaitTime) {
-                                highestPriorityFlight = f;
-                                maxWaitTime = currentWait;
-                            }
-                        }
-                    }
-                }
-
-                // Dispatch the unit to the highest priority (most delayed) flight found
-                if (highestPriorityFlight != null) {
-                    // System.out.println("Found available: " + currentUnit.getServiceType() + "!, Dispatching to most delayed flight: " + highestPriorityFlight.getFlightId());
-                    currentUnit.provideService(highestPriorityFlight);
-                    highestPriorityFlight.addAssignedServiceToList(currentUnit, this.timeLine); // Note: Assuming timeline is passed based on your previous code structure
-                }
+            // Plane is founded! Assign service to plane..
+            if (targetFlight != null) { // Avoid unexpected errors
+                currentUnit.provideService(targetFlight);
+                targetFlight.addAssignedServiceToList(currentUnit, this.timeLine); 
             }
         }
     }
 
-    // Dead method To be deleted
-    public void assignServiceUnit(Flight flight, String serviceType) {
-        for (ServiceUnit currentUnit : this.serviceUnits) {
-            if (currentUnit.getServiceType().equals(serviceType) && currentUnit.isAvailable()) { 
-                System.out.println("Found available: " + serviceType + "!, Dispatching Unit: " + currentUnit.getUnitId() + " for flight: " + flight.getFlightId());
+    // ============================= Time ==============================
+    // Get most waited plane that is still waiting for a service
+    private Flight findMostDelayedFlightForService(ServiceUnit unit) {
+        Flight highestPriorityFlight = null;
+        double maxWaitTime = -1.0;
+
+        for (Flight f : this.flights) {
+            
+            // skip this flight if departing or has no gate
+            if (f.getAssignedGate() == null || f.getFlightArrivalStatus().equals("Departed")) {
+                continue; 
+            }
+
+            // Is service unserved?
+            if (f.getUnServedServicesUnits().contains(unit.getServiceType())) {
                 
-                currentUnit.provideService(flight);
-                flight.addAssignedServiceToList(currentUnit, this.timeLine);
-                return;  // Leave so we don't add similar services
+                double currentWait = f.getFlightTotalWaitingTime(); 
+                // Compare Time
+                if (currentWait > maxWaitTime) {
+                    highestPriorityFlight = f;
+                    maxWaitTime = currentWait;
+                }
             }
         }
-        // System.out.println("Service [" + serviceType + "] is BUSY! Flight [" + flight.getFlightId() + "] is waiting at gate " + flight.getAssignedGateId());
+        // Return most waited plane
+        return highestPriorityFlight;
     }
-
-    // ==================== Calculations =====================
-
-    public void calculateWaitingTime() {
+    public void calculateAvgWaitingTime() {
         this.totalWaitingTime = 0.0; // Reset total
         
         for (Flight f : this.flights) {
@@ -337,6 +327,7 @@ public class Airport {
         }
     }
 
+    // ======================= Cost Calculations =======================
 
     // Method to calculate the total cost of ALL service units (Fleet Cost)
     public double calculateTotalCost() {
@@ -365,25 +356,6 @@ public class Airport {
         
         return currentOperationalCost;
     }
-    
-
-    // Method to get total usage count for a specific service type
-    public int getTotalUsageOfService(String serviceType) {
-        int totalUsage = 0;
-
-        for (int i = 0; i < this.serviceUnits.size(); i++) {
-            ServiceUnit unit = this.serviceUnits.get(i);
-
-            // Check if the unit matches the requested service type
-            if (unit.getServiceType().equals(serviceType)) {
-                // Add the number of times this specific unit was used
-                totalUsage += unit.getPlanesServedHistory().size();
-            }
-        }
-
-        return totalUsage;
-    }
-
     
     // Method to get the operational cost for a specific service type (Used units only)
     public double getOperationalCostOfServiceType(String serviceType) {
@@ -415,6 +387,23 @@ public class Airport {
         }
 
         return typeTotalCost;
+    }
+
+        // Method to get total usage count for a specific service type
+    public int getTotalUsageOfService(String serviceType) {
+        int totalUsage = 0;
+
+        for (int i = 0; i < this.serviceUnits.size(); i++) {
+            ServiceUnit unit = this.serviceUnits.get(i);
+
+            // Check if the unit matches the requested service type
+            if (unit.getServiceType().equals(serviceType)) {
+                // Add the number of times this specific unit was used
+                totalUsage += unit.getPlanesServedHistory().size();
+            }
+        }
+
+        return totalUsage;
     }
 
     // ************************************************

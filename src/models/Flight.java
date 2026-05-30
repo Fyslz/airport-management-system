@@ -23,7 +23,6 @@ public abstract class Flight implements Serviceable{
     private double flightInQueueWaitingTime; // Waiting time plane took in Queue only
     private double timeGateAssigned = -1.0; // When flight Parked on a Gate
     private double flightOnGateWaitingTime; // Waiting time plane took on gate only // requested units
-    private double readyToDepartTime = -1; // not ready to depart
 
 
     // Gates Variables
@@ -162,6 +161,4 @@ public abstract class Flight implements Serviceable{
     public List<String> getUnServedServicesUnits() { updateUnServedServices(); return unServedServicesUnits; }
     // =================================================================
 
-    public void setReadyToDepartTime(double time) { this.readyToDepartTime = time; }
-    public double getReadyToDepartTime() { return this.readyToDepartTime; }
 }
