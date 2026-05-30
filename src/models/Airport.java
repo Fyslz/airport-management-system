@@ -61,30 +61,31 @@ public class Airport {
     // ************************************************
     
     // ======================= Airport Management ======================
+
 private void generateServices() {
-        System.out.println("\n--- Initializing Service Units (SCENARIO 5 - EVIL) ---");
+        System.out.println("\n--- Initializing Service Units (TEST 3: Identity) ---");
         this.serviceUnits.clear(); 
         
-        // المطار طفران، ما فيه إلا درج واحد فقط!
-        addServiceUnit(new Stairs(601)); 
+        addServiceUnit(new BaggageHandler(401)); 
     }
 
     private void generateFlights() {
-        System.out.println("--- Generating 1 Cursed Flight ---");
+        System.out.println("--- Generating Mixed Fleet for Identity Test ---");
         this.flights.clear();
 
-        Flight cursedFlight = new PassengerPlane("DOOM-666", 1.0, 1, 150);
-        
-        // الطيارة تطلب الدرج (موجود وبتاخذه)
-        cursedFlight.requestService("Stairs"); 
-        
-        // 🚨 الطلب الخبيث: تطلب بنزين، والمطار ما عنده ولا سيارة بنزين!
-        cursedFlight.requestService("FuelTruck"); 
+        // طيارة ركاب فيها 300 راكب
+        Flight passenger = new PassengerPlane("PASS-99", 1.0, 1, 300);
+        // طيارة شحن وزنها 8500 كيلو
+        Flight cargo = new CargoPlane("CARGO-X", 1.0, 1, 8500);
 
-        System.out.println("--- Receiving Cursed Flight ---");
-        receiveFlight(cursedFlight);
+        passenger.requestService("BaggageHandler");
+        cargo.requestService("BaggageHandler");
+
+        System.out.println("--- Receiving Flights ---");
+        receiveFlight(passenger);
+        receiveFlight(cargo);
     }
-    
+
     public void run() {
         System.out.println("=== AIRPORT SIMULATION STARTED ===");
         generateServices();
@@ -100,33 +101,20 @@ private void generateServices() {
             
             this.timeLine += 1.0; // Time ticks forward..
             
-            // ---------------------------------------------------------
-            // أمر طباعة لتتبع مرور الوقت في المحاكاة
+            // Printing time 
             System.out.println("\n[ >>> Minute: " + this.timeLine + " <<< ]");
-            // ---------------------------------------------------------
 
             updateActiveFlightsWaitingTimes();
             assignServiceUnit(); 
             processReadyDepartures();
-            
-            // تحديث العداد بناءً على عدد الطيارات اللي غادرت فعلاً
-            departedFlightsCount = getDepartedFlightsCount();
 
-            // ---------------------------------------------------------
-            // إبطاء التنفيذ لمدة ثانية واحدة (1000 ملي ثانية) لتقرأ المخرجات
-            try {
-                Thread.sleep(1000); 
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            // ---------------------------------------------------------
+            departedFlightsCount = getDepartedFlightsCount();
         }
         
         System.out.println("\n=== ALL FLIGHTS DEPARTED AT MINUTE: " + this.timeLine + " ===");
         printResults();
     }
-    
-    // دالة مساعدة لحساب الطيارات المغادرة وتحديث الـ Loop
+
     private int getDepartedFlightsCount() {
         int count = 0;
         for (Flight f : this.flights) {
@@ -136,7 +124,6 @@ private void generateServices() {
         }
         return count;
     }
-
 
     // ======================== Display Results ========================
     // Flight Summary Report
@@ -215,7 +202,7 @@ private void generateServices() {
             System.out.println("  [Current State] The gate is currently empty.");
         }
 
-        // 2. Flights History (تعديل: إضافة وقت الوقوف)
+        // 2. Flights History
         List<Flight> planesHistory = g.getPlanesOnGateHistory();
         System.out.println("  [Flights History] Total Flights Handled: " + planesHistory.size());
         
@@ -226,12 +213,11 @@ private void generateServices() {
             }
         }
 
-        // 3. Service Units History (تعديل: إضافة وقت وصول كل سيارة للبوابة)
+        // 3. Service Units History
         System.out.println("  [Services History] Total Service Units Visited: " + g.getUnitsOnGateHistory().size());
         
         if (!planesHistory.isEmpty()) {
             for (Flight f : planesHistory) {
-                // نسحب الخدمات الخاصة بكل طيارة وقفت في هذي البوابة عشان نعرف متى جات
                 for (java.util.Map.Entry<ServiceUnit, Double> entry : f.getWhenServiceUnitServed().entrySet()) {
                     ServiceUnit unit = entry.getKey();
                     Double timeServed = entry.getValue();
@@ -275,7 +261,6 @@ private void generateServices() {
             System.out.println("  [History] Status                : Unused today (Zero operations).");
         } else {
             System.out.println("  [History] Detailed Operations Log:");
-            // نمر على كل طيارة خدمتها هالسيارة، ونسحب الوقت ورقم البوابة
             for (Flight f : unit.getPlanesServedHistory()) {
                 double timeServed = unit.getServiceTimesHistory().getOrDefault(f, -1.0);
                 String gateInfo = (f.getAssignedGate() != null) ? String.valueOf(f.getAssignedGateId()) : "Unknown";
@@ -519,7 +504,7 @@ private void generateServices() {
             ServiceUnit currentUnit = this.serviceUnits.get(i);
             fleetCost += currentUnit.getCost(); 
         }
-        
+        this.totalCost = fleetCost;
         return fleetCost;
     }
     
