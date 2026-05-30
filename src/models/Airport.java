@@ -197,6 +197,109 @@ private void generateServices() {
         }
     }
 
+    // Gate Summary Report
+    public void printSingleGateSummary(Gate g) {
+        if (g == null) {
+            System.out.println("Error: Provided gate is null.");
+            return;
+        }
+
+        String status = g.getIsAvailable() ? "AVAILABLE (Free)" : "OCCUPIED (Busy)";
+        System.out.println("Gate ID: [" + g.getGateId() + "] | Status: " + status);
+        System.out.println("---------------------------------------------------------");
+
+        // 1. Current Occupancy
+        if (g.getActivePlaneOnGate() != null) {
+            System.out.println("  [Current State] Occupied by Flight : [" + g.getActivePlaneOnGate().getFlightId() + "]");
+        } else {
+            System.out.println("  [Current State] The gate is currently empty.");
+        }
+
+        // 2. Flights History (تعديل: إضافة وقت الوقوف)
+        List<Flight> planesHistory = g.getPlanesOnGateHistory();
+        System.out.println("  [Flights History] Total Flights Handled: " + planesHistory.size());
+        
+        if (!planesHistory.isEmpty()) {
+            for (Flight f : planesHistory) {
+                String parkedTime = (f.getTimeGateAssigned() != -1.0) ? String.valueOf(f.getTimeGateAssigned()) : "N/A";
+                System.out.println("      -> Flight [" + f.getFlightId() + "] | Parked at Minute: " + parkedTime + " | Status: " + f.getFlightArrivalStatus());
+            }
+        }
+
+        // 3. Service Units History (تعديل: إضافة وقت وصول كل سيارة للبوابة)
+        System.out.println("  [Services History] Total Service Units Visited: " + g.getUnitsOnGateHistory().size());
+        
+        if (!planesHistory.isEmpty()) {
+            for (Flight f : planesHistory) {
+                // نسحب الخدمات الخاصة بكل طيارة وقفت في هذي البوابة عشان نعرف متى جات
+                for (java.util.Map.Entry<ServiceUnit, Double> entry : f.getWhenServiceUnitServed().entrySet()) {
+                    ServiceUnit unit = entry.getKey();
+                    Double timeServed = entry.getValue();
+                    System.out.println("      -> Unit: " + unit.getServiceType() + " [ID: " + unit.getUnitId() + "] | Arrived at Minute: " + timeServed + " (For Flight: " + f.getFlightId() + ")");
+                }
+            }
+        }
+
+        System.out.println("=========================================================");
+    }
+    
+    
+    // All Gates Summary Report
+    public void printAllGatesSummary() {
+        System.out.println("\n\n=========================================================");
+        System.out.println("                 DETAILED GATES TRACKING LOG             ");
+        System.out.println("=========================================================");
+
+        for (Gate g : this.airportGates) {
+            printSingleGateSummary(g);
+        }
+    }
+
+    // Service Unit Summary Report
+    public void printSingleServiceSummary(ServiceUnit unit) {
+        if (unit == null) {
+            System.out.println("Error: Provided service unit is null.");
+            return;
+        }
+
+        String status = unit.isAvailable() ? "AVAILABLE" : "BUSY";
+        System.out.println("Service Type: [" + unit.getServiceType() + "] | Unit ID: [" + unit.getUnitId() + "] | Status: " + status);
+        System.out.println("---------------------------------------------------------");
+
+        // 1. Financial & General Info
+        System.out.println("  [Info] Daily Rental Cost        : $" + unit.getCost());
+        System.out.println("  [Info] Total Flights Served     : " + unit.getPlanesServedHistory().size());
+
+        // 2. Operational Tracking (Gates and Flights History)
+        if (unit.getPlanesServedHistory().isEmpty()) {
+            System.out.println("  [History] Status                : Unused today (Zero operations).");
+        } else {
+            System.out.println("  [History] Detailed Operations Log:");
+            // نمر على كل طيارة خدمتها هالسيارة، ونسحب الوقت ورقم البوابة
+            for (Flight f : unit.getPlanesServedHistory()) {
+                double timeServed = unit.getServiceTimesHistory().getOrDefault(f, -1.0);
+                String gateInfo = (f.getAssignedGate() != null) ? String.valueOf(f.getAssignedGateId()) : "Unknown";
+                
+                System.out.println("      -> Arrived at Minute : " + timeServed);
+                System.out.println("         Served Flight     : [" + f.getFlightId() + "]");
+                System.out.println("         At Gate Number    : [" + gateInfo + "]");
+                System.out.println("         - - - - - - - - - - - - - - - - - -");
+            }
+        }
+        System.out.println("=========================================================");
+    }
+
+    // All Service Units Summary Report
+    public void printAllServicesSummary() {
+        System.out.println("\n\n=========================================================");
+        System.out.println("               DETAILED SERVICES TRACKING LOG            ");
+        System.out.println("=========================================================");
+
+        for (ServiceUnit unit : this.serviceUnits) {
+            printSingleServiceSummary(unit);
+        }
+    }
+
     public void printResults() {
         // ------------------------ Calculations ------------------------
         calculateAvgWaitingTime();
@@ -224,6 +327,10 @@ private void generateServices() {
         System.out.println("\n4. RESOURCES STATUS:");
         System.out.println("   - Total Service Units     : " + this.serviceUnits.size() + " units");
         System.out.println("   - Currently Available     : " + ServiceUnit.getAvailableServiceUnits() + " units");
+        
+        printAllFlightsSummary();
+        printAllGatesSummary();
+        printAllServicesSummary();
         
         System.out.println("=========================================================");
         System.out.println("         End of Operations - Simulation Complete         ");
@@ -292,7 +399,7 @@ private void generateServices() {
         
         // If no gates are available, add to the waiting queue
         this.waitingQueue.add(flight);
-        flight.setTimeGateAssigned(this.timeLine);
+        flight.setTimeEnteredQueue(this.timeLine);
         System.out.println("Flight: " + flight.getFlightId() + " is waiting for a free gate...");
     }
 
